@@ -1,0 +1,1 @@
+# Land Corp. Django Backend API server
