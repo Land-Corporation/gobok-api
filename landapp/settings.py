@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'api.base.user',
+    'api.base.code',
     'api.base.room',
 ]
 
@@ -93,10 +94,10 @@ if os.getenv('GAE_APPLICATION', None):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': '<NEED_OVERRIDE>',
-            'USER': '<NEED_OVERRIDE>',
-            'PASSWORD': '<NEED_OVERRIDE>',
-            'NAME': '<NEED_OVERRIDE>',
+            'HOST': '/cloudsql/landproject-300104:asia-northeast3:landapp-mysql',
+            'USER': 'root',
+            'PASSWORD': 'LhiMIsD70ssE8JFi',
+            'NAME': 'landapp',
         }
     }
 else:
@@ -111,40 +112,43 @@ else:
             'ENGINE': 'django.db.backends.mysql',
             'HOST': '127.0.0.1',
             'PORT': '3306',
-            'NAME': '<NEED_OVERRIDE>',
-            'USER': '<NEED_OVERRIDE>',
-            'PASSWORD': '<NEED_OVERRIDE>',
+            'NAME': 'landapp',
+            'USER': 'jin',
+            'PASSWORD': 'Wjdwls93@',
         }
     }
 # [END db_setup]
 
-# Use a in-memory sqlite3 database when testing in CI systems
-if os.getenv('TRAMPOLINE_CI', None):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3')
-        }
-    }
-
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',  # noqa: 501
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',  # noqa: 501
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',  # noqa: 501
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',  # noqa: 501
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
 
+# DRF configuration
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}
+
+# Authentication
 AUTH_USER_MODEL = 'user.User'
 
 # Internationalization
