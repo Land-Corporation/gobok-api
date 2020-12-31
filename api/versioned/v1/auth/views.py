@@ -1,18 +1,36 @@
+from django.core.validators import validate_email
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
-from api.base.code.models import VerificationCode
+
+from api.base.user.models import User, generate_code, get_expires_at
+from .serializers import VerificationCodeSerializer
 
 
 class VerificationCodeViewSet(viewsets.ModelViewSet):
-    def create(self, request, *args, **kwargs):
-        """ Generate Verification Code and send this code to target Email """
-        email = request.data.get('email', None)
-        if not email:
-            return Response(data='Please provide email', status=status.HTTP_400_BAD_REQUEST)
+    serializer_class = VerificationCodeSerializer
 
-        vc = VerificationCode.objects.create(email_to_verify=email)
-        vc.email_code(from_email='jin@landcorp.io')
+    def send_code(self, request, *args, **kwargs):
+
+        """ Generate Verification Code and send this code to target Email """
+        email = self.request.data.get('email', None)
+
+        if not email:
+            return Response(data='Please provide email info', status=status.HTTP_400_BAD_REQUEST)
+
+        validate_email(email)
+        try:
+            user = User.objects.get(email=email)
+            user.code = generate_code()  # reset code
+            user.code_expires_at = get_expires_at()
+            user.save(update_fields=['code', 'code_expires_at'])
+        except User.DoesNotExist:
+            user = User.objects.create_user(email=email)
+
+        subject = f'[고대복덕방] 인증코드입니다.'
+        message = f'인증코드입니다: {user.code}'
+
+        user.email_code(subject, message, from_email='support@landcorp.io')
         return Response(status=status.HTTP_200_OK)
 
 

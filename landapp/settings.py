@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'drf_yasg',
     'django_extensions',
     'api.base.user',
     'api.base.code',
@@ -151,6 +152,28 @@ REST_FRAMEWORK = {
 # Authentication
 AUTH_USER_MODEL = 'user.User'
 
+# Swagger settings
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'basic': {
+            'type': 'basic',
+        },
+    },
+    'LOGIN_URL': '/admin/login/',
+    'LOGOUT_URL': '/admin/logout/',
+    'USE_SESSION_AUTH': True,
+    'DOC_EXPANSION': 'None',
+    'DEEP_LINKING': True,
+    'DEFAULT_MODEL_DEPTH': 1,
+    'DISPLAY_OPERATION_ID': False,
+    'REFETCH_SCHEMA_WITH_AUTH': True,
+    'REFETCH_SCHEMA_ON_LOGOUT': True,
+}
+REDOC_SETTINGS = {
+    'PATH_IN_MIDDLE': True,
+    'REQUIRED_PROPS_FIRST': True,
+}
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
@@ -169,3 +192,9 @@ USE_TZ = True
 
 STATIC_ROOT = 'static'
 STATIC_URL = '/static/'
+
+# Business Logic
+
+# Verification Code setting
+VERI_CODE_DIGIT = 4
+VERI_CODE_LIFETIME_MIN = 10

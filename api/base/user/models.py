@@ -1,13 +1,36 @@
+import random
+from datetime import datetime, timedelta, timezone
+
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.mail import send_mail
+from django.core.validators import MinLengthValidator
 from django.db import models
+from model_utils.models import TimeStampedModel
 from model_utils.models import TimeStampedModel
 
 from .managers import UserManager
 
 
+def generate_code() -> str:
+    """Verification Code to validate user email"""
+    # ex) 0234, 1322, 9211
+    return f'{random.randrange(1, 10 ** settings.VERI_CODE_DIGIT):0{settings.VERI_CODE_DIGIT}}'
+
+
+def get_expires_at():
+    return datetime.now(timezone.utc) + timedelta(minutes=settings.VERI_CODE_DIGIT)
+
+
 class User(AbstractBaseUser, TimeStampedModel, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
+
+    # Verification code related
+    code = models.CharField(max_length=settings.VERI_CODE_DIGIT,
+                            default=generate_code,
+                            validators=[MinLengthValidator(settings.VERI_CODE_DIGIT)])
+    code_expires_at = models.DateTimeField(default=get_expires_at)
+
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
 
@@ -38,3 +61,7 @@ class User(AbstractBaseUser, TimeStampedModel, PermissionsMixin):
         """"Is the user a member of staff?"""
         # Simplest possible answer: All admins are staff
         return self.is_admin
+
+    def email_code(self, subject, message, from_email=None, **kwargs):
+        """Send Verification code to email"""
+        send_mail(subject, message, from_email, [self.email], **kwargs)

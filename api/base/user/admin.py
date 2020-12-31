@@ -9,6 +9,8 @@ class UserAdmin(admin.ModelAdmin):
     list_display = [
         'id',
         'email',
+        'code',
+        'code_expires_at',
         'last_login',
         'created',
         'modified',
