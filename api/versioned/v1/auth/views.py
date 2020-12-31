@@ -21,7 +21,8 @@ class VerificationCodeViewSet(viewsets.ModelViewSet):
         email = request.data.get('email', None)
 
         if not email:
-            return Response(data='Please provide email info', status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={'msg': 'Please provide email info'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         validate_email(email)
         try:
@@ -51,19 +52,21 @@ class LoginViewSet(viewsets.ModelViewSet):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response(data='Please request for code first.', status=status.HTTP_403_FORBIDDEN)
-
+            return Response(data={'msg': 'Please request for code first.'},
+                            status=status.HTTP_403_FORBIDDEN)
         # check code and expiration
         if user.code != code:
-            return Response(data='Invalid code.', status=status.HTTP_403_FORBIDDEN)
+            return Response(data={'msg': 'Invalid code.'},
+                            status=status.HTTP_403_FORBIDDEN)
         if user.code_expires_at < datetime.now(timezone.utc):
-            return Response(data='Code expired.', status=status.HTTP_403_FORBIDDEN)
-
+            return Response(data={'msg': 'Code expired.'},
+                            status=status.HTTP_403_FORBIDDEN)
         # issue jwt
         payload = jwt_payload_handler(user)
         token = jwt_encode_handler(payload)
 
-        return Response(data=token, status=status.HTTP_200_OK)
+        return Response(data={'data': token},
+                        status=status.HTTP_200_OK)
 
 
 class LogoutViewSet(viewsets.ModelViewSet):

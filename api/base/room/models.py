@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from model_utils.models import TimeStampedModel
+from .managers import RoomManager
 
 
 class Room(TimeStampedModel):
@@ -11,3 +12,5 @@ class Room(TimeStampedModel):
     published_at = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    object = RoomManager()
