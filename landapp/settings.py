@@ -139,9 +139,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # DRF configuration
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
@@ -151,6 +151,12 @@ REST_FRAMEWORK = {
 
 # Authentication
 AUTH_USER_MODEL = 'user.User'
+
+# JWT settings
+JWT_AUTH = {
+    # TODO: temporary measurement. need to change after proper auth system
+    'JWT_VERIFY_EXPIRATION': False,
+}
 
 # Swagger settings
 SWAGGER_SETTINGS = {

@@ -4,7 +4,7 @@ from rest_framework import serializers
 from api.base.user.models import User
 
 
-class EmailCodeSerializer(serializers.ModelSerializer):
+class VerificationCodeSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=255)
 
     class Meta:
@@ -12,10 +12,10 @@ class EmailCodeSerializer(serializers.ModelSerializer):
         fields = ['email']
 
 
-class UserLoginSerializer(serializers.ModelSerializer):
+class LoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=255)
     code = serializers.CharField(max_length=settings.EMAIL_CODE_DIGIT)
 
     class Meta:
         model = User
-        fields = ['email']
+        fields = ['email', 'code']
