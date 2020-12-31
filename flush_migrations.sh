@@ -1,0 +1,1 @@
+find api/base/*/migrations/* ! -name "__init__.py" -exec rm -rf {} \;
