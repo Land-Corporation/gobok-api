@@ -174,6 +174,15 @@ REDOC_SETTINGS = {
     'REQUIRED_PROPS_FIRST': True,
 }
 
+# Email setting
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'jin@landcorp.io'
+EMAIL_HOST_PASSWORD = 'jpyqgmmmhyfpvxvr'
+DEFAULT_FROM_EMAIL = 'support@landcorp.io'
+EMAIL_PORT = 587
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
@@ -196,5 +205,5 @@ STATIC_URL = '/static/'
 # Business Logic
 
 # Verification Code setting
-VERI_CODE_DIGIT = 4
-VERI_CODE_LIFETIME_MIN = 10
+EMAIL_CODE_DIGIT = 4
+EMAIL_CODE_LIFETIME_MIN = 10

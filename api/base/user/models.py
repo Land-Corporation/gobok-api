@@ -15,20 +15,20 @@ from .managers import UserManager
 def generate_code() -> str:
     """Verification Code to validate user email"""
     # ex) 0234, 1322, 9211
-    return f'{random.randrange(1, 10 ** settings.VERI_CODE_DIGIT):0{settings.VERI_CODE_DIGIT}}'
+    return f'{random.randrange(1, 10 ** settings.EMAIL_CODE_DIGIT):0{settings.EMAIL_CODE_DIGIT}}'
 
 
 def get_expires_at():
-    return datetime.now(timezone.utc) + timedelta(minutes=settings.VERI_CODE_DIGIT)
+    return datetime.now(timezone.utc) + timedelta(minutes=settings.EMAIL_CODE_LIFETIME_MIN)
 
 
 class User(AbstractBaseUser, TimeStampedModel, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
 
     # Verification code related
-    code = models.CharField(max_length=settings.VERI_CODE_DIGIT,
+    code = models.CharField(max_length=settings.EMAIL_CODE_DIGIT,
                             default=generate_code,
-                            validators=[MinLengthValidator(settings.VERI_CODE_DIGIT)])
+                            validators=[MinLengthValidator(settings.EMAIL_CODE_DIGIT)])
     code_expires_at = models.DateTimeField(default=get_expires_at)
 
     is_active = models.BooleanField(default=True)

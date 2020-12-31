@@ -4,13 +4,13 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 
 from api.base.user.models import User, generate_code, get_expires_at
-from .serializers import VerificationCodeSerializer
+from .serializers import EmailCodeSerializer, UserLoginSerializer
 
 
-class VerificationCodeViewSet(viewsets.ModelViewSet):
-    serializer_class = VerificationCodeSerializer
+class EmailCodeViewSet(viewsets.ModelViewSet):
+    serializer_class = EmailCodeSerializer
 
-    def send_code(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
 
         """ Generate Verification Code and send this code to target Email """
         email = self.request.data.get('email', None)
@@ -29,13 +29,17 @@ class VerificationCodeViewSet(viewsets.ModelViewSet):
 
         subject = f'[고대복덕방] 인증코드입니다.'
         message = f'인증코드입니다: {user.code}'
+        user.email_code(subject, message)
 
-        user.email_code(subject, message, from_email='support@landcorp.io')
         return Response(status=status.HTTP_200_OK)
 
 
 class LoginViewSet(viewsets.ModelViewSet):
-    def retrieve(self, request, *args, **kwargs):
+    serializer_class = UserLoginSerializer
+
+    def create(self, request, *args, **kwargs):
+
+
         return Response(status=status.HTTP_200_OK)
 
 
