@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 
+# NEED OVERRIDE
+# This value is used in URL path, Swagger, GCS blob save dir etc.
+API_VERSION = 'v1.0'
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -188,6 +192,10 @@ EMAIL_HOST_USER = 'jin@landcorp.io'
 EMAIL_HOST_PASSWORD = 'jpyqgmmmhyfpvxvr'
 DEFAULT_FROM_EMAIL = 'support@landcorp.io'
 EMAIL_PORT = 587
+
+# Infra setting
+# Google Cloud Storage setting
+GCS_BUCKET_NAME = 'landproject-300104.appspot.com'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/

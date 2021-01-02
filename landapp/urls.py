@@ -11,15 +11,17 @@ from rest_framework import permissions
 from api.service.auth import urls as auth_urls
 from api.service.room import urls as room_urls
 
+V = settings.API_VERSION
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('v1/auth/', include(auth_urls)),
-    path('v1/rooms/', include(room_urls))
+    path(f'{V}/auth/', include(auth_urls)),
+    path(f'{V}/rooms/', include(room_urls))
 ]
 
 if settings.DEBUG:
     title = 'Land App API'
-    api_version = 'v1'
+    api_version = V
     sv = schema_view = get_schema_view(
         openapi.Info(
             title=title,
