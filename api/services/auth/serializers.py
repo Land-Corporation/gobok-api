@@ -1,7 +1,7 @@
 from django.conf import settings
 from rest_framework import serializers
 
-from api.model.user.models import User
+from api.models.user.models import User
 
 
 class VerificationCodeSerializer(serializers.ModelSerializer):

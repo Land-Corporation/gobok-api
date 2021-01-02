@@ -1,6 +1,6 @@
 from django.db import models
 
-from api.model.user.models import User
+from api.models.user.models import User
 
 
 class RoomManager(models.Manager):

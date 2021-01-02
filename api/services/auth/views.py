@@ -6,7 +6,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
 
-from api.model.user.models import User, generate_code, get_expires_at
+from api.models.user.models import User, generate_code, get_expires_at
 from .serializers import VerificationCodeSerializer, LoginSerializer
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER

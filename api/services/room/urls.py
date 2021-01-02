@@ -1,9 +1,11 @@
 from django.urls import path
-from .views import RoomViewSet
+
+from .views import RoomViewSet, RoomImageUploadView
 
 urlpatterns = [
     path('', RoomViewSet.as_view({'get': 'list',
                                   'post': 'create'})),
+    path('images', RoomImageUploadView.as_view({'post': 'upload'})),
     path('<room_id>', RoomViewSet.as_view({'get': 'retrieve',
                                            'put': 'update',
                                            'delete': 'destroy'})),

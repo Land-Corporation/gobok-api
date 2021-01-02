@@ -1,10 +1,18 @@
+import uuid
+
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.parsers import FileUploadParser
 from rest_framework.response import Response
 
-from api.model.room.models import Room
+from api.models.room.models import Room
+from api.models.room_photo.models import RoomPhoto
+from core.processors import process_image_data_from_request
+from infra.gcloud_storage import GCloudStorage
 from .serializers import RoomSerializer
+
+gcs = GCloudStorage()
 
 
 class RoomViewSet(viewsets.ModelViewSet):
@@ -36,3 +44,5 @@ class RoomViewSet(viewsets.ModelViewSet):
 
     def refresh(self, request, *args, **kwargs):
         pass
+
+

@@ -8,8 +8,8 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
-from api.service.auth import urls as auth_urls
-from api.service.room import urls as room_urls
+from api.services.auth import urls as auth_urls
+from api.services.room import urls as room_urls
 
 V = settings.API_VERSION
 
