@@ -46,3 +46,21 @@ class RoomViewSet(viewsets.ModelViewSet):
         pass
 
 
+class RoomImageUploadView(viewsets.ModelViewSet):
+    parser_classes = [FileUploadParser]
+    queryset = RoomPhoto.objects.all()
+
+    def upload(self, request, *args, **kwargs):
+        # upload to GCS first
+        image_filename = uuid.uuid4().hex  # use uuid4 for randomness
+
+        try:
+            image_bytes = process_image_data_from_request(request)
+        except FileNotFoundError:
+            return Response(data={'detail': 'Please send request with image file'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        url = gcs.upload_image_from_bytes(image_filename, image_bytes)
+        print(url)
+        return Response(status=200, data='Successfully uploaded map image')
+
