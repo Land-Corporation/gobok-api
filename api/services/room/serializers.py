@@ -20,16 +20,10 @@ class RoomSerializer(serializers.ModelSerializer):
         ret = super().to_representation(instance)
         return ret
 
-    def to_internal_value(self, data):
-        """ Accept unvalidated data and return validated """
-        image_urls = data.get('image_urls')
-        data['image_urls'] = [url for url in image_urls]
-        return data
-
     def create(self, validated_data):
         # parse data
         user = validated_data.get('user')
-        image_urls = validated_data.pop('image_urls')
+        images = validated_data.pop('images')
 
         # ONLY one USER can create ONE ROOM (public)
         queryset = Room.objects.filter(user=user, is_public=True)
@@ -37,7 +31,10 @@ class RoomSerializer(serializers.ModelSerializer):
             raise ValidationError('You have already created a room.')
         room = Room.objects.create(**validated_data)
         # link room with room_image
-        for url in image_urls:
+        for image in images:
+            url = image.get('url', None)
+            if not url:
+                continue
             RoomImage.objects.create(room=room, url=url)
         return room
 

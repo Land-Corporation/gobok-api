@@ -78,3 +78,43 @@ class RoomImageUploadView(viewsets.ModelViewSet):
         public_url = gcs.get_image_public_access_url(image_filename)
         return Response(data={'data': public_url}, status=status.HTTP_200_OK)
 
+#
+# class RoomImageDownloadView(viewsets.ModelViewSet):
+#     renderer_classes = [PNGRenderer]
+#     queryset = Room.objects.all()
+#
+#     def download(self, request, *args, **kwargs):
+#         location_id = self.kwargs.get('location_id')
+#         if self.request.path.split('/')[-2] == 'current-map':
+#             try:
+#                 location = Location.objects.get(
+#                     id=location_id,
+#                     retired=False,
+#                 )
+#             except Location.DoesNotExist as e:
+#                 raise exceptions.NotFound(detail=str(e))
+#             found = location.current_map
+#         else:
+#             found = get_target_map_from_location(self)
+#         # Download image data from GCS bucket
+#         try:
+#             image_data = storage.download_map_image(location_id,
+#                                                     found.image_file_name)
+#         except GCSNotFound:
+#             raise exceptions.NotFound(
+#                 detail='Image not found in Google Storage.')
+#
+#         if self.request.path.split('/')[-1] == 'base64':
+#             png_file = io.BytesIO()
+#             Image.open(io.BytesIO(image_data)).save(png_file, format='PNG')
+#             base64_image = base64.b64encode(png_file.getvalue()).decode('UTF-8')
+#             return JsonResponse({'data': base64_image})
+#
+#         response = Response(image_data, content_type='image/png')
+#         disposition = self.request.query_params.get('disposition')
+#         if disposition == 'attachment':
+#             response['Content-Disposition'] = \
+#                 f'attachment; filename={found.image_file_name}'
+#         else:
+#             response['Content-Disposition'] = 'inline'
+#         return response
