@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'api.models.user',
     'api.models.code',
     'api.models.room',
-    'api.models.room_photo',
+    'api.models.room_image',
 ]
 
 MIDDLEWARE = [
