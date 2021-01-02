@@ -3,7 +3,7 @@ import uuid
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.parsers import FileUploadParser
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 
 from api.models.room.models import Room
@@ -47,20 +47,22 @@ class RoomViewSet(viewsets.ModelViewSet):
 
 
 class RoomImageUploadView(viewsets.ModelViewSet):
-    parser_classes = [FileUploadParser]
+    parser_classes = (MultiPartParser,)
     queryset = RoomPhoto.objects.all()
 
-    def upload(self, request, *args, **kwargs):
-        # upload to GCS first
-        image_filename = uuid.uuid4().hex  # use uuid4 for randomness
-
+    def upload(self, request):
+        # process image file sent
         try:
             image_bytes = process_image_data_from_request(request)
         except FileNotFoundError:
             return Response(data={'detail': 'Please send request with image file'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        url = gcs.upload_image_from_bytes(image_filename, image_bytes)
-        print(url)
-        return Response(status=200, data='Successfully uploaded map image')
+        # upload to GCS
+        image_filename = uuid.uuid4().hex  # use uuid4 for randomness
+        # TODO: need to change make_public to False someday
+        gcs.upload_image_from_bytes(image_filename, image_bytes, make_public=True)
+
+        public_url = gcs.get_image_public_access_url(image_filename)
+        return Response(data={'data': public_url}, status=status.HTTP_200_OK)
 

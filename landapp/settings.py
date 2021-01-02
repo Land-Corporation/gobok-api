@@ -14,7 +14,7 @@ import os
 
 # NEED OVERRIDE
 # This value is used in URL path, Swagger, GCS blob save dir etc.
-API_VERSION = 'v1.0'
+API_VERSION = 'v1'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -197,6 +197,7 @@ EMAIL_PORT = 587
 # Infra setting
 # Google Cloud Storage setting
 GCS_BUCKET_NAME = 'landproject-300104.appspot.com'
+GCS_IMAGE_FOLDER_NAME = 'images'  # folder name that image will be uploaded to
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
