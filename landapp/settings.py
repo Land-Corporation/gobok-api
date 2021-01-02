@@ -42,9 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'drf_yasg',
     'django_extensions',
-    'api.base.user',
-    'api.base.code',
-    'api.base.room',
+    'api.model.user',
+    'api.model.code',
+    'api.model.room',
 ]
 
 MIDDLEWARE = [
