@@ -58,14 +58,20 @@ class LoginViewSet(viewsets.ModelViewSet):
         if user.code != code:
             return Response(data={'detail': 'Invalid code.'},
                             status=status.HTTP_403_FORBIDDEN)
-        if user.code_expires_at < datetime.now(timezone.utc):
+        now_time = datetime.now(timezone.utc)
+        if user.code_expires_at < now_time:
             return Response(data={'detail': 'Code expired.'},
                             status=status.HTTP_403_FORBIDDEN)
+        # make code expired
+        user.code_expires_at = now_time
+        user.save(update_fields=['code_expires_at'])
+
         # issue jwt
         payload = jwt_payload_handler(user)
         token = jwt_encode_handler(payload)
 
-        return Response(data={'data': token},
+        return Response(data={'detail': 'Code verified. JWT issued.',
+                              'data': token},
                         status=status.HTTP_200_OK)
 
 

@@ -16,6 +16,13 @@ import os
 # This value is used in URL path, Swagger, GCS blob save dir etc.
 API_VERSION = 'v1'
 
+# BUSINESS related setting
+# Verification Code setting
+EMAIL_CODE_DIGIT = 4
+EMAIL_CODE_LIFETIME_MIN = 5
+# Verification Code setting
+POST_BUMP_CYCLE_SEC = 24 * 60 * 60  # 끌올 주기 (24h)
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -47,7 +54,6 @@ INSTALLED_APPS = [
     'drf_yasg',
     'django_extensions',
     'api.models.user',
-    'api.models.code',
     'api.models.room',
     'api.models.room_image',
 ]
@@ -217,9 +223,3 @@ USE_TZ = True
 
 STATIC_ROOT = 'static'
 STATIC_URL = '/static/'
-
-# Business Logic
-
-# Verification Code setting
-EMAIL_CODE_DIGIT = 4
-EMAIL_CODE_LIFETIME_MIN = 10

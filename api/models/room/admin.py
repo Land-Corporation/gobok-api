@@ -11,9 +11,8 @@ class RoomAdmin(admin.ModelAdmin):
         'user',
         'title',
         'content',
-        'published_at',
-        'created_at',
-        'updated_at'
+        'bumped_at',
+        'is_public'
     ]
     search_fields = [
         'id',
