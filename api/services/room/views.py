@@ -1,7 +1,8 @@
 import uuid
-from django.db import transaction
-
+from datetime import datetime, timezone
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework import viewsets
@@ -20,6 +21,7 @@ gcs = GCloudStorage()
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
+    lookup_url_kwarg = 'room_id'
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -41,7 +43,7 @@ class RoomViewSet(viewsets.ModelViewSet):
             room = self.perform_create(serializer)
         except ValidationError as e:
             return Response({'detail': e.message}, status=status.HTTP_403_FORBIDDEN)
-        return Response({'detail': f'Successfully created room(id={room.id})'}, status=status.HTTP_200_OK)
+        return Response({'detail': f'created room(id={room.id})'}, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         """A hook that is called after serializer.is_valid() and before serializer.save()"""
@@ -49,13 +51,42 @@ class RoomViewSet(viewsets.ModelViewSet):
         return instance
 
     def update(self, request, *args, **kwargs):
-        pass
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({'detail': 'updated room info'}, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
-        pass
+        room = self.get_object()
+        if not room.is_public:
+            return Response({'detail': f'room(id={room.id}) already deleted'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        room.is_public = False
+        room.save(update_fields=['is_public'])
+        return Response({'detail': f'deleted room(id={room.id})'},
+                        status=status.HTTP_200_OK)
 
-    def refresh(self, request, *args, **kwargs):
-        pass
+
+class RoomBumpViewSet(viewsets.ModelViewSet):
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
+    lookup_url_kwarg = 'room_id'
+
+    def bump(self, request, *args, **kwargs):
+        room = self.get_object()
+        now_time = datetime.now(timezone.utc)
+        time_elapsed = (now_time - room.bumped_at).seconds
+
+        # check if able to bump
+        if time_elapsed < settings.POST_BUMP_CYCLE_SEC:
+            remaining_time = settings.POST_BUMP_CYCLE_SEC - time_elapsed
+            return Response({'detail': f'bump cycle for room(id={room.id}) not reached. '
+                                       f'please wait {remaining_time}sec'},
+                            status=status.HTTP_403_FORBIDDEN)
+        room.bumped_at = now_time
+        room.save(update_fields=['bumped_at'])
+        return Response({'detail': f'bumped room(id={room.id})'}, status=status.HTTP_200_OK)
 
 
 class RoomImageUploadView(viewsets.ModelViewSet):
@@ -67,7 +98,7 @@ class RoomImageUploadView(viewsets.ModelViewSet):
         try:
             image_bytes = process_image_data_from_request(request)
         except FileNotFoundError:
-            return Response(data={'detail': 'Please send request with image file'},
+            return Response({'detail': 'send request with image file'},
                             status=status.HTTP_400_BAD_REQUEST)
 
         # upload to GCS
@@ -76,45 +107,4 @@ class RoomImageUploadView(viewsets.ModelViewSet):
         gcs.upload_image_from_bytes(image_filename, image_bytes, make_public=True)
 
         public_url = gcs.get_image_public_access_url(image_filename)
-        return Response(data={'data': public_url}, status=status.HTTP_200_OK)
-
-#
-# class RoomImageDownloadView(viewsets.ModelViewSet):
-#     renderer_classes = [PNGRenderer]
-#     queryset = Room.objects.all()
-#
-#     def download(self, request, *args, **kwargs):
-#         location_id = self.kwargs.get('location_id')
-#         if self.request.path.split('/')[-2] == 'current-map':
-#             try:
-#                 location = Location.objects.get(
-#                     id=location_id,
-#                     retired=False,
-#                 )
-#             except Location.DoesNotExist as e:
-#                 raise exceptions.NotFound(detail=str(e))
-#             found = location.current_map
-#         else:
-#             found = get_target_map_from_location(self)
-#         # Download image data from GCS bucket
-#         try:
-#             image_data = storage.download_map_image(location_id,
-#                                                     found.image_file_name)
-#         except GCSNotFound:
-#             raise exceptions.NotFound(
-#                 detail='Image not found in Google Storage.')
-#
-#         if self.request.path.split('/')[-1] == 'base64':
-#             png_file = io.BytesIO()
-#             Image.open(io.BytesIO(image_data)).save(png_file, format='PNG')
-#             base64_image = base64.b64encode(png_file.getvalue()).decode('UTF-8')
-#             return JsonResponse({'data': base64_image})
-#
-#         response = Response(image_data, content_type='image/png')
-#         disposition = self.request.query_params.get('disposition')
-#         if disposition == 'attachment':
-#             response['Content-Disposition'] = \
-#                 f'attachment; filename={found.image_file_name}'
-#         else:
-#             response['Content-Disposition'] = 'inline'
-#         return response
+        return Response({'data': public_url}, status=status.HTTP_200_OK)

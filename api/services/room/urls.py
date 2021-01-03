@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import RoomViewSet, RoomImageUploadView
+from .views import RoomViewSet, RoomImageUploadView, RoomBumpViewSet
 
 urlpatterns = [
     path('', RoomViewSet.as_view({'get': 'list',
@@ -9,5 +9,5 @@ urlpatterns = [
     path('<room_id>', RoomViewSet.as_view({'get': 'retrieve',
                                            'put': 'update',
                                            'delete': 'destroy'})),
-    path('<room_id>/refresh', RoomViewSet.as_view({'post': 'refresh'})),
+    path('<room_id>/refresh', RoomBumpViewSet.as_view({'post': 'bump'})),
 ]
