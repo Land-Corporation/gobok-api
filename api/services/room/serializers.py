@@ -39,7 +39,7 @@ class PostCreateRoomImageSerializer(serializers.ModelSerializer):
         fields = ['id', 'room_id', 'url']
 
 
-class RoomSerializer(serializers.ModelSerializer):
+class RoomWithImagesSerializer(serializers.ModelSerializer):
     images = OnCreateRoomImageSerializer(many=True)
 
     def to_representation(self, instance):

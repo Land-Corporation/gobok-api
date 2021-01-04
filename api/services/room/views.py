@@ -6,7 +6,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 
 from api.models.room.models import Room
@@ -14,7 +14,7 @@ from api.models.room_image.models import RoomImage
 from core.processors import process_image_data_from_request
 from infra.gcloud_storage import GCloudStorage
 from .serializers import (
-    RoomSerializer,
+    RoomWithImagesSerializer,
     OnCreateRoomImageSerializer,
     PostCreateRoomImageSerializer
 )
@@ -24,7 +24,7 @@ gcs = GCloudStorage()
 
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all()
-    serializer_class = RoomSerializer
+    serializer_class = RoomWithImagesSerializer
     lookup_url_kwarg = 'room_id'
 
     def list(self, request, *args, **kwargs):
@@ -74,7 +74,7 @@ class RoomViewSet(viewsets.ModelViewSet):
 
 class RoomBumpViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all()
-    serializer_class = RoomSerializer
+    serializer_class = RoomWithImagesSerializer
     lookup_url_kwarg = 'room_id'
 
     def bump(self, request, *args, **kwargs):
@@ -96,7 +96,7 @@ class RoomBumpViewSet(viewsets.ModelViewSet):
 class RoomImageViewSet(viewsets.ModelViewSet):
     """ Uploads given image file to Google Cloud Storage and
     returns accessible public url for downloading. """
-    parser_classes = (MultiPartParser,)
+    parser_classes = (MultiPartParser, JSONParser)
     queryset = RoomImage.objects.all()
     serializer_class = OnCreateRoomImageSerializer
     lookup_field = 'image_id'
@@ -129,13 +129,12 @@ class RoomImageViewSet(viewsets.ModelViewSet):
         return Response({'data': serializer.data}, status=status.HTTP_200_OK)
 
     def reorder(self, request, *args, **kwargs):
-        room_id = self.kwargs.get('room_id', None)
-        if not room_id:
-            return Response({'detail': 'please specify room_id'},
+        image_id_order = request.data.get('image_id_order', None)
+        if not image_id_order:
+            return Response({'detail': 'send list of image_ids by order desired'},
                             status=status.HTTP_400_BAD_REQUEST)
-        room = Room.objects.get(id=room_id)
-        # reorder
-        # TODO
+        room = Room.objects.get(id=self.kwargs['room_id'])
+        room.set_roomimage_order(image_id_order)
         return Response({'detail': 'reordered room images'}, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
