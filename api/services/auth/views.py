@@ -38,7 +38,7 @@ class VerificationCodeViewSet(viewsets.ModelViewSet):
         message = f'인증코드입니다: {user.code}'
         user.email_code(subject, message)
 
-        return Response(status=status.HTTP_200_OK)
+        return Response({'detail': 'send code'}, status=status.HTTP_200_OK)
 
 
 class LoginViewSet(viewsets.ModelViewSet):
@@ -52,15 +52,15 @@ class LoginViewSet(viewsets.ModelViewSet):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response(data={'detail': 'Please request for code first.'},
+            return Response({'detail': 'Please request for code first.'},
                             status=status.HTTP_403_FORBIDDEN)
         # check code and expiration
         if user.code != code:
-            return Response(data={'detail': 'Invalid code.'},
+            return Response({'detail': 'Invalid code.'},
                             status=status.HTTP_403_FORBIDDEN)
         now_time = datetime.now(timezone.utc)
         if user.code_expires_at < now_time:
-            return Response(data={'detail': 'Code expired.'},
+            return Response({'detail': 'Code expired.'},
                             status=status.HTTP_403_FORBIDDEN)
         # make code expired
         user.code_expires_at = now_time
@@ -70,8 +70,8 @@ class LoginViewSet(viewsets.ModelViewSet):
         payload = jwt_payload_handler(user)
         token = jwt_encode_handler(payload)
 
-        return Response(data={'detail': 'Code verified. JWT issued.',
-                              'data': token},
+        return Response({'detail': 'Code verified. JWT issued.',
+                         'data': token},
                         status=status.HTTP_200_OK)
 
 
