@@ -99,7 +99,7 @@ class RoomImageViewSet(viewsets.ModelViewSet):
     parser_classes = (MultiPartParser, JSONParser)
     queryset = RoomImage.objects.all()
     serializer_class = OnCreateRoomImageSerializer
-    lookup_field = 'image_id'
+    lookup_url_kwarg = 'image_id'
 
     def create(self, request, *args, **kwargs):
         # process image file sent

@@ -9,9 +9,6 @@ class OnCreateRoomImageSerializer(serializers.ModelSerializer):
     """ Room Image serializer onCreate Room. Note that this serializer CANNOT
     accept `room_id` since it is operated BEFORE room is created. """
 
-    def create(self, validated_data):
-        return
-
     class Meta:
         model = RoomImage
         fields = ['id', 'url']
@@ -43,7 +40,7 @@ class RoomWithImagesSerializer(serializers.ModelSerializer):
     images = OnCreateRoomImageSerializer(many=True)
 
     def to_representation(self, instance):
-        room_images = RoomImage.objects.filter(room=instance)
+        room_images = RoomImage.objects.filter(room=instance, is_public=True)
         instance.images = OnCreateRoomImageSerializer(room_images, many=True).data
         ret = super().to_representation(instance)
         return ret
