@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -28,6 +29,7 @@ class RoomViewSet(viewsets.ModelViewSet):
     lookup_url_kwarg = 'room_id'
 
     def list(self, request, *args, **kwargs):
+        # TODO: make and use RoomPreviewSerializer later
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
@@ -70,6 +72,10 @@ class RoomViewSet(viewsets.ModelViewSet):
         room.save(update_fields=['is_public'])
         return Response({'detail': f'deleted room(id={room.id})'},
                         status=status.HTTP_200_OK)
+
+    def get_serializer_class(self):
+        # TODO: decide which serializer to use depending on incoming HTTP method
+        pass
 
 
 class RoomBumpViewSet(viewsets.ModelViewSet):

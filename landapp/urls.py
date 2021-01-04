@@ -9,8 +9,8 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 from api.services.auth import urls as auth_urls
+from api.services.my import urls as my_urls
 from api.services.room import urls as room_urls
-from api.services.users import urls as user_urls
 
 V = settings.API_VERSION
 
@@ -18,7 +18,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path(f'{V}/auth/', include(auth_urls)),
     path(f'{V}/rooms/', include(room_urls)),
-    path(f'{V}/users/', include(user_urls)),
+    path(f'{V}/my/', include(my_urls)),
 ]
 
 if settings.DEBUG:
