@@ -13,7 +13,11 @@ from api.models.room.models import Room
 from api.models.room_image.models import RoomImage
 from core.processors import process_image_data_from_request
 from infra.gcloud_storage import GCloudStorage
-from .serializers import RoomSerializer
+from .serializers import (
+    RoomSerializer,
+    OnCreateRoomImageSerializer,
+    PostCreateRoomImageSerializer
+)
 
 gcs = GCloudStorage()
 
@@ -89,11 +93,15 @@ class RoomBumpViewSet(viewsets.ModelViewSet):
         return Response({'detail': f'bumped room(id={room.id})'}, status=status.HTTP_200_OK)
 
 
-class RoomImageUploadView(viewsets.ModelViewSet):
+class RoomImageViewSet(viewsets.ModelViewSet):
+    """ Uploads given image file to Google Cloud Storage and
+    returns accessible public url for downloading. """
     parser_classes = (MultiPartParser,)
     queryset = RoomImage.objects.all()
+    serializer_class = OnCreateRoomImageSerializer
+    lookup_field = 'image_id'
 
-    def upload(self, request):
+    def create(self, request, *args, **kwargs):
         # process image file sent
         try:
             image_bytes = process_image_data_from_request(request)
@@ -101,10 +109,37 @@ class RoomImageUploadView(viewsets.ModelViewSet):
             return Response({'detail': 'send request with image file'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # upload to GCS
+        # upload to GCS and get public url
         image_filename = uuid.uuid4().hex  # use uuid4 for randomness
-        # TODO: need to change make_public to False someday
         gcs.upload_image_from_bytes(image_filename, image_bytes, make_public=True)
-
         public_url = gcs.get_image_public_access_url(image_filename)
-        return Response({'data': public_url}, status=status.HTTP_200_OK)
+
+        # case1) requested AFTER room creation
+        data = {'url': public_url}
+        if 'room_id' in self.kwargs:  # if '<room_id>' in url path
+            data['room_id'] = self.kwargs.get('room_id', None)
+            serializer = PostCreateRoomImageSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+        # case2) requested BEFORE room creation
+        else:
+            serializer = OnCreateRoomImageSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+
+        return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+
+    def reorder(self, request, *args, **kwargs):
+        room_id = self.kwargs.get('room_id', None)
+        if not room_id:
+            return Response({'detail': 'please specify room_id'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        room = Room.objects.get(id=room_id)
+        # reorder
+        # TODO
+        return Response({'detail': 'reordered room images'}, status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        image = self.get_object()
+        image.is_public = False
+        image.save(update_fields=['is_public'])
+        return Response({'detail': 'deleted image'}, status=status.HTTP_200_OK)

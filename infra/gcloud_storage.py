@@ -20,7 +20,7 @@ class GCloudStorage:
         blob = self.bucket.blob(file_dir)
 
         # upload to GCS
-        blob.upload_from_string(image_file, content_type='image/jpg')
+        blob.upload_from_string(image_file)
 
         # make publicly accessible
         if make_public:

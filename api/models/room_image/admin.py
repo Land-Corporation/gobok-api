@@ -10,6 +10,8 @@ class RoomPhotoAdmin(admin.ModelAdmin):
         'id',
         'room',
         'url',
+        '_order',
+        'is_public',
         'created',
         'modified'
     ]

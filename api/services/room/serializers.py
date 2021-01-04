@@ -5,18 +5,46 @@ from api.models.room_image.models import RoomImage
 from django.core.exceptions import ValidationError
 
 
-class RoomImageSerializer(serializers.ModelSerializer):
+class OnCreateRoomImageSerializer(serializers.ModelSerializer):
+    """ Room Image serializer onCreate Room. Note that this serializer CANNOT
+    accept `room_id` since it is operated BEFORE room is created. """
+
+    def create(self, validated_data):
+        return
+
     class Meta:
         model = RoomImage
-        fields = ['url']
+        fields = ['id', 'url']
+
+
+class PostCreateRoomImageSerializer(serializers.ModelSerializer):
+    """ Room Image serializer postCreate Room. Note that this serializer CAN
+        accept `room_id` since it is operated AFTER room is created. """
+    room_id = serializers.IntegerField()
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret.pop('room_id')
+        return ret
+
+    def create(self, validated_data):
+        room_id = validated_data.get('room_id')
+        url = validated_data.get('url')
+        room = Room.objects.get(id=room_id)
+        room_image = RoomImage.objects.create(room=room, url=url)
+        return room_image
+
+    class Meta:
+        model = RoomImage
+        fields = ['id', 'room_id', 'url']
 
 
 class RoomSerializer(serializers.ModelSerializer):
-    images = RoomImageSerializer(many=True)
+    images = OnCreateRoomImageSerializer(many=True)
 
     def to_representation(self, instance):
         room_images = RoomImage.objects.filter(room=instance)
-        instance.images = RoomImageSerializer(room_images, many=True).data
+        instance.images = OnCreateRoomImageSerializer(room_images, many=True).data
         ret = super().to_representation(instance)
         return ret
 
