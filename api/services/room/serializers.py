@@ -5,7 +5,7 @@ from api.models.room_image.models import RoomImage
 from django.core.exceptions import ValidationError
 
 
-class OnCreateRoomImageSerializer(serializers.ModelSerializer):
+class PreCreateRoomImageSerializer(serializers.ModelSerializer):
     """ Room Image serializer onCreate Room. Note that this serializer CANNOT
     accept `room_id` since it is operated BEFORE room is created. """
 
@@ -36,12 +36,12 @@ class PostCreateRoomImageSerializer(serializers.ModelSerializer):
         fields = ['id', 'room_id', 'url']
 
 
-class RoomWithImagesSerializer(serializers.ModelSerializer):
-    images = OnCreateRoomImageSerializer(many=True)
+class RoomDetailViewSerializer(serializers.ModelSerializer):
+    images = PreCreateRoomImageSerializer(many=True)
 
     def to_representation(self, instance):
         room_images = RoomImage.objects.filter(room=instance, is_public=True)
-        instance.images = OnCreateRoomImageSerializer(room_images, many=True).data
+        instance.images = PreCreateRoomImageSerializer(room_images, many=True).data
         ret = super().to_representation(instance)
         return ret
 

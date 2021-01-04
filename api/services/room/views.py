@@ -14,8 +14,8 @@ from api.models.room_image.models import RoomImage
 from core.processors import process_image_data_from_request
 from infra.gcloud_storage import GCloudStorage
 from .serializers import (
-    RoomWithImagesSerializer,
-    OnCreateRoomImageSerializer,
+    RoomDetailViewSerializer,
+    PreCreateRoomImageSerializer,
     PostCreateRoomImageSerializer
 )
 
@@ -24,7 +24,7 @@ gcs = GCloudStorage()
 
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all().filter(is_public=True)
-    serializer_class = RoomWithImagesSerializer
+    serializer_class = RoomDetailViewSerializer
     lookup_url_kwarg = 'room_id'
 
     def list(self, request, *args, **kwargs):
@@ -74,7 +74,7 @@ class RoomViewSet(viewsets.ModelViewSet):
 
 class RoomBumpViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all().filter(is_public=True)
-    serializer_class = RoomWithImagesSerializer
+    serializer_class = RoomDetailViewSerializer
     lookup_url_kwarg = 'room_id'
 
     def bump(self, request, *args, **kwargs):
@@ -122,7 +122,7 @@ class RoomImageViewSet(viewsets.ModelViewSet):
             serializer.save()
         # case2) requested BEFORE room creation
         else:
-            serializer = OnCreateRoomImageSerializer(data=data)
+            serializer = PreCreateRoomImageSerializer(data=data)
             serializer.is_valid(raise_exception=True)
 
         return Response({'data': serializer.data}, status=status.HTTP_200_OK)
