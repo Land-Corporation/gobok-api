@@ -6,6 +6,10 @@ from api.models.room.models import Room
 from api.models.room_image.models import RoomImage
 
 
+# ----------------------
+# |  Nested Serializer |
+# ----------------------
+
 class OnCreateRoomImageSerializer(serializers.ModelSerializer):
     """ Room Image serializer onCreate Room. Note that this serializer CANNOT
     accept `room_id` since it is operated BEFORE room is created. """
@@ -37,6 +41,22 @@ class PostCreateRoomImageSerializer(serializers.ModelSerializer):
         fields = ['id', 'room_id', 'url']
 
 
+class ThumbnailImageSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        # add thumbnail url suffix
+        ret = super().to_representation(instance)
+        ret['url'] = f"{ret['url']}{settings.THUMBNAIL_URL_SUFFIX}"
+        return ret
+
+    class Meta:
+        model = RoomImage
+        fields = ['url']
+
+
+# -----------------------
+# |  ViewSet Serializer |
+# -----------------------
+
 class RoomDefaultViewSerializer(serializers.ModelSerializer):
     images = OnCreateRoomImageSerializer(many=True)
 
@@ -64,30 +84,20 @@ class RoomDefaultViewSerializer(serializers.ModelSerializer):
 
 
 class RoomDetailViewSerializer(serializers.ModelSerializer):
-    images = OnCreateRoomImageSerializer(many=True)
+    images = serializers.ListField(read_only=True)
+    nickname = serializers.CharField(read_only=True)
 
     def to_representation(self, instance):
         room_images = RoomImage.objects.filter(room=instance, is_public=True)
         instance.images = OnCreateRoomImageSerializer(room_images, many=True).data
+        instance.nickname = instance.user.nickname
         ret = super().to_representation(instance)
         return ret
 
     class Meta:
         model = Room
-        # TODO: add more fields like 'nickname', 'view_count' ...
-        fields = ['id', 'title', 'content', 'bumped_at', 'images']
-
-
-class ThumbnailImageSerializer(serializers.ModelSerializer):
-    def to_representation(self, instance):
-        # add thumbnail url suffix
-        ret = super().to_representation(instance)
-        ret['url'] = f"{ret['url']}{settings.THUMBNAIL_URL_SUFFIX}"
-        return ret
-
-    class Meta:
-        model = RoomImage
-        fields = ['url']
+        # TODO: add field 'view_count' ...
+        fields = ['id', 'nickname', 'title', 'content', 'bumped_at', 'images']
 
 
 class RoomListViewSerializer(serializers.ModelSerializer):
@@ -99,4 +109,5 @@ class RoomListViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Room
-        fields = ['id', 'title', 'content', 'bumped_at', 'thumbnail']
+        # TODO: add field 'view_count' ...
+        fields = ['id', 'title', 'bumped_at', 'thumbnail']
