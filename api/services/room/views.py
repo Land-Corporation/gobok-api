@@ -23,7 +23,7 @@ gcs = GCloudStorage()
 
 
 class RoomViewSet(viewsets.ModelViewSet):
-    queryset = Room.objects.all()
+    queryset = Room.objects.all().filter(is_public=True)
     serializer_class = RoomWithImagesSerializer
     lookup_url_kwarg = 'room_id'
 
@@ -73,7 +73,7 @@ class RoomViewSet(viewsets.ModelViewSet):
 
 
 class RoomBumpViewSet(viewsets.ModelViewSet):
-    queryset = Room.objects.all()
+    queryset = Room.objects.all().filter(is_public=True)
     serializer_class = RoomWithImagesSerializer
     lookup_url_kwarg = 'room_id'
 
@@ -97,8 +97,7 @@ class RoomImageViewSet(viewsets.ModelViewSet):
     """ Uploads given image file to Google Cloud Storage and
     returns accessible public url for downloading. """
     parser_classes = (MultiPartParser, JSONParser)
-    queryset = RoomImage.objects.all()
-    serializer_class = OnCreateRoomImageSerializer
+    queryset = RoomImage.objects.all().filter(is_public=True)
     lookup_url_kwarg = 'image_id'
 
     def create(self, request, *args, **kwargs):
