@@ -22,6 +22,9 @@ EMAIL_CODE_DIGIT = 4
 EMAIL_CODE_LIFETIME_MIN = 5
 # Verification Code setting
 POST_BUMP_CYCLE_SEC = 24 * 60 * 60  # 끌올 주기 (24h)
+# Image thumbnail setting
+THUMBNAIL_DIMENSION = (128, 128)  # 128x128
+THUMBNAIL_URL_SUFFIX = '=thumbnail'  # https://<PUBLIC_URL_TO_IMAGE>=thumbnail
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

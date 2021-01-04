@@ -12,11 +12,13 @@ from rest_framework.response import Response
 
 from api.models.room.models import Room
 from api.models.room_image.models import RoomImage
-from core.processors import process_image_data_from_request
+from core.utils import process_image_data_from_request, convert_image_to_thumbnail
 from infra.gcloud_storage import GCloudStorage
 from .serializers import (
+    RoomDefaultViewSerializer,
     RoomDetailViewSerializer,
-    PreCreateRoomImageSerializer,
+    RoomListViewSerializer,
+    OnCreateRoomImageSerializer,
     PostCreateRoomImageSerializer
 )
 
@@ -25,11 +27,17 @@ gcs = GCloudStorage()
 
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all().filter(is_public=True)
-    serializer_class = RoomDetailViewSerializer
+    serializer_class = RoomDefaultViewSerializer
     lookup_url_kwarg = 'room_id'
 
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return RoomListViewSerializer
+        if self.action == 'retrieve':
+            return RoomDetailViewSerializer
+        return RoomDefaultViewSerializer
+
     def list(self, request, *args, **kwargs):
-        # TODO: make and use RoomPreviewSerializer later
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
@@ -46,10 +54,10 @@ class RoomViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
-            room = self.perform_create(serializer)
+            self.perform_create(serializer)
         except ValidationError as e:
             return Response({'detail': e.message}, status=status.HTTP_403_FORBIDDEN)
-        return Response({'detail': f'created room(id={room.id})'}, status=status.HTTP_200_OK)
+        return Response({'detail': f'created room'}, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         """A hook that is called after serializer.is_valid() and before serializer.save()"""
@@ -73,14 +81,10 @@ class RoomViewSet(viewsets.ModelViewSet):
         return Response({'detail': f'deleted room(id={room.id})'},
                         status=status.HTTP_200_OK)
 
-    def get_serializer_class(self):
-        # TODO: decide which serializer to use depending on incoming HTTP method
-        pass
-
 
 class RoomBumpViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all().filter(is_public=True)
-    serializer_class = RoomDetailViewSerializer
+    serializer_class = RoomDefaultViewSerializer
     lookup_url_kwarg = 'room_id'
 
     def bump(self, request, *args, **kwargs):
@@ -114,9 +118,16 @@ class RoomImageViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'send request with image file'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # upload to GCS and get public url
+        # Upload all to GCS
         image_filename = uuid.uuid4().hex  # use uuid4 for randomness
         gcs.upload_image_from_bytes(image_filename, image_bytes, make_public=True)
+
+        # create thumbnail and upload to GCS
+        thumbnail_bytes = convert_image_to_thumbnail(image_bytes)
+        gcs.upload_image_from_bytes(f'{image_filename}{settings.THUMBNAIL_URL_SUFFIX}',
+                                    thumbnail_bytes, make_public=True)
+
+        # get public url
         public_url = gcs.get_image_public_access_url(image_filename)
 
         # case1) requested AFTER room creation
@@ -128,7 +139,7 @@ class RoomImageViewSet(viewsets.ModelViewSet):
             serializer.save()
         # case2) requested BEFORE room creation
         else:
-            serializer = PreCreateRoomImageSerializer(data=data)
+            serializer = OnCreateRoomImageSerializer(data=data)
             serializer.is_valid(raise_exception=True)
 
         return Response({'data': serializer.data}, status=status.HTTP_200_OK)

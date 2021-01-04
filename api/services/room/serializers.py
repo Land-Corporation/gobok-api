@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
@@ -5,7 +6,7 @@ from api.models.room.models import Room
 from api.models.room_image.models import RoomImage
 
 
-class PreCreateRoomImageSerializer(serializers.ModelSerializer):
+class OnCreateRoomImageSerializer(serializers.ModelSerializer):
     """ Room Image serializer onCreate Room. Note that this serializer CANNOT
     accept `room_id` since it is operated BEFORE room is created. """
 
@@ -36,14 +37,8 @@ class PostCreateRoomImageSerializer(serializers.ModelSerializer):
         fields = ['id', 'room_id', 'url']
 
 
-class RoomDetailViewSerializer(serializers.ModelSerializer):
-    images = PreCreateRoomImageSerializer(many=True)
-
-    def to_representation(self, instance):
-        room_images = RoomImage.objects.filter(room=instance, is_public=True)
-        instance.images = PreCreateRoomImageSerializer(room_images, many=True).data
-        ret = super().to_representation(instance)
-        return ret
+class RoomDefaultViewSerializer(serializers.ModelSerializer):
+    images = OnCreateRoomImageSerializer(many=True)
 
     def create(self, validated_data):
         # parse data
@@ -66,3 +61,42 @@ class RoomDetailViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = ['id', 'title', 'content', 'bumped_at', 'images']
+
+
+class RoomDetailViewSerializer(serializers.ModelSerializer):
+    images = OnCreateRoomImageSerializer(many=True)
+
+    def to_representation(self, instance):
+        room_images = RoomImage.objects.filter(room=instance, is_public=True)
+        instance.images = OnCreateRoomImageSerializer(room_images, many=True).data
+        ret = super().to_representation(instance)
+        return ret
+
+    class Meta:
+        model = Room
+        # TODO: add more fields like 'nickname', 'view_count' ...
+        fields = ['id', 'title', 'content', 'bumped_at', 'images']
+
+
+class ThumbnailImageSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        # add thumbnail url suffix
+        ret = super().to_representation(instance)
+        ret['url'] = f"{ret['url']}{settings.THUMBNAIL_URL_SUFFIX}"
+        return ret
+
+    class Meta:
+        model = RoomImage
+        fields = ['url']
+
+
+class RoomListViewSerializer(serializers.ModelSerializer):
+    thumbnail = ThumbnailImageSerializer()  # only one thumbnail image
+
+    def to_representation(self, instance):
+        instance.thumbnail = RoomImage.objects.filter(room=instance, is_public=True)[0]
+        return super().to_representation(instance)
+
+    class Meta:
+        model = Room
+        fields = ['id', 'title', 'content', 'bumped_at', 'thumbnail']
