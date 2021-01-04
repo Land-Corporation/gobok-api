@@ -1,8 +1,8 @@
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from api.models.room.models import Room
 from api.models.room_image.models import RoomImage
-from django.core.exceptions import ValidationError
 
 
 class PreCreateRoomImageSerializer(serializers.ModelSerializer):
