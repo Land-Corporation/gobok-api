@@ -24,6 +24,7 @@ def get_expires_at():
 
 class User(AbstractBaseUser, TimeStampedModel, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
+    nickname = models.CharField(max_length=255)
 
     # Verification code related
     code = models.CharField(max_length=settings.EMAIL_CODE_DIGIT,
