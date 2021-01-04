@@ -7,16 +7,14 @@ from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
 
 from api.models.user.models import User, generate_code, get_expires_at
-from .serializers import VerificationCodeSerializer, LoginSerializer
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 
 
-class VerificationCodeViewSet(viewsets.ModelViewSet):
-    serializer_class = VerificationCodeSerializer
-
-    def create(self, request, *args, **kwargs):
+class VerificationCodeViewSet(viewsets.ViewSet):
+    @staticmethod
+    def create(request):
         """ Generate Verification Code and send this code to target Email """
         email = request.data.get('email', None)
 
@@ -41,10 +39,9 @@ class VerificationCodeViewSet(viewsets.ModelViewSet):
         return Response({'detail': 'send code'}, status=status.HTTP_200_OK)
 
 
-class LoginViewSet(viewsets.ModelViewSet):
-    serializer_class = LoginSerializer
-
-    def create(self, request, *args, **kwargs):
+class LoginViewSet(viewsets.ViewSet):
+    @staticmethod
+    def create(request):
         email = request.data.get('email', None)
         code = request.data.get('code', None)
 
