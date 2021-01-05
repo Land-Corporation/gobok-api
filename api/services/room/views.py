@@ -45,7 +45,8 @@ class RoomViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        return Response({'array': serializer.data}, status=status.HTTP_200_OK)
+        return Response({'status': 200,
+                         'array': serializer.data}, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
         room_id = self.kwargs.get('room_id')
@@ -56,7 +57,8 @@ class RoomViewSet(viewsets.ModelViewSet):
         HitCountMixin.hit_count(request, hit_count)
 
         serializer = self.get_serializer(room)
-        return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+        return Response({'status': 200,
+                         'data': serializer.data}, status=status.HTTP_200_OK)
 
     @transaction.atomic  # ensure db rollback
     def create(self, request, *args, **kwargs):
@@ -66,8 +68,10 @@ class RoomViewSet(viewsets.ModelViewSet):
         try:
             self.perform_create(serializer)
         except ValidationError as e:
-            return Response({'detail': e.message}, status=status.HTTP_403_FORBIDDEN)
-        return Response({'detail': f'created room'}, status=status.HTTP_200_OK)
+            return Response({'status': 403,
+                             'detail': e.message}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'status': 200,
+                         'detail': f'created room'}, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         """A hook that is called after serializer.is_valid() and before serializer.save()"""
@@ -79,16 +83,19 @@ class RoomViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(room, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return Response({'detail': 'updated room info'}, status=status.HTTP_200_OK)
+        return Response({'status': 200,
+                         'detail': 'updated room info'}, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         room = self.get_object()  # performs check_object_permission
         if not room.is_public:
-            return Response({'detail': f'room(id={room.id}) already deleted'},
+            return Response({'status': 400,
+                             'detail': f'room(id={room.id}) already deleted'},
                             status=status.HTTP_400_BAD_REQUEST)
         room.is_public = False
         room.save(update_fields=['is_public'])
-        return Response({'detail': f'deleted room(id={room.id})'},
+        return Response({'status': 200,
+                         'detail': f'deleted room(id={room.id})'},
                         status=status.HTTP_200_OK)
 
 
@@ -106,12 +113,14 @@ class RoomBumpViewSet(viewsets.ModelViewSet):
         # check if able to bump
         if time_elapsed < settings.BUMP_CYCLE_SEC:
             remaining_time = settings.BUMP_CYCLE_SEC - time_elapsed
-            return Response({'detail': f'bump cycle for room(id={room.id}) not reached. '
+            return Response({'status': 403,
+                             'detail': f'bump cycle for room(id={room.id}) not reached. '
                                        f'please wait {remaining_time}sec'},
                             status=status.HTTP_403_FORBIDDEN)
         room.bumped_at = now_time
         room.save(update_fields=['bumped_at'])
-        return Response({'detail': f'bumped room(id={room.id})'}, status=status.HTTP_200_OK)
+        return Response({'status': 200,
+                         'detail': f'bumped room(id={room.id})'}, status=status.HTTP_200_OK)
 
 
 class RoomImageViewSet(viewsets.ModelViewSet):
@@ -127,7 +136,8 @@ class RoomImageViewSet(viewsets.ModelViewSet):
         try:
             image_bytes = process_image_data_from_request(request)
         except FileNotFoundError:
-            return Response({'detail': 'send request with image file'},
+            return Response({'status': 400,
+                             'detail': 'send request with image file'},
                             status=status.HTTP_400_BAD_REQUEST)
 
         # Upload all to GCS
@@ -163,12 +173,14 @@ class RoomImageViewSet(viewsets.ModelViewSet):
             serializer = OnCreateRoomImageSerializer(data=data)
             serializer.is_valid(raise_exception=True)
 
-        return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+        return Response({'status': 200,
+                         'data': serializer.data}, status=status.HTTP_200_OK)
 
     def reorder(self, request, *args, **kwargs):
         image_id_order = request.data.get('image_id_order', None)
         if not image_id_order:
-            return Response({'detail': 'send list of image_ids by order desired'},
+            return Response({'status': 400,
+                             'detail': 'send list of image_ids by order desired'},
                             status=status.HTTP_400_BAD_REQUEST)
         room = Room.objects.get(id=self.kwargs['room_id'])
 
@@ -177,10 +189,12 @@ class RoomImageViewSet(viewsets.ModelViewSet):
 
         # reorder
         room.set_roomimage_order(image_id_order)
-        return Response({'detail': 'reordered room images'}, status=status.HTTP_200_OK)
+        return Response({'status': 200,
+                         'detail': 'reordered room images'}, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         image = self.get_object()  # performs check_object_permission
         image.is_public = False
         image.save(update_fields=['is_public'])
-        return Response({'detail': 'deleted image'}, status=status.HTTP_200_OK)
+        return Response({'status': 200,
+                         'detail': 'deleted image'}, status=status.HTTP_200_OK)
