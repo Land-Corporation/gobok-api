@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'drf_yasg',
     'django_extensions',
+    'hitcount',
     'api.models.user',
     'api.models.room',
     'api.models.room_image',

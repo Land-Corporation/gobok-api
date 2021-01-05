@@ -45,6 +45,16 @@ class RoomViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         room_id = self.kwargs.get('room_id')
         room = get_object_or_404(self.get_queryset(), id=room_id)
+
+        from hitcount.models import HitCount
+        from hitcount.views import HitCountMixin
+        # first get the related HitCount object for your model object
+        hit_count = HitCount.objects.get_for_object(room)
+
+        # next, you can attempt to count a hit and get the response
+        # you need to pass it the request object as well
+        hit_count_response = HitCountMixin.hit_count(request, hit_count)
+
         serializer = self.get_serializer(room)
         return Response({'data': serializer.data}, status=status.HTTP_200_OK)
 
