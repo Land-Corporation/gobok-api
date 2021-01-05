@@ -8,15 +8,14 @@ from .views import (
 
 urlpatterns = [
     # room data related
-    path('', RoomViewSet.as_view({'get': 'list',  # isAuthenticated
-                                  'post': 'create'})),  # isAuthenticated
-    path('images', RoomImageViewSet.as_view({'post': 'create'})),  # isAuthenticated
-
-    path('<room_id>', RoomViewSet.as_view({'get': 'retrieve',  # isAuthenticated
-                                           'put': 'update',  # isAuthenticated && hasRoom(objectPermission)
-                                           'delete': 'destroy'})),  # isAuthenticated && hasRoom
-    path('<room_id>/refresh', RoomBumpViewSet.as_view({'post': 'bump'})),  # 끌올 # isAuthenticated && hasRoom
-    path('<room_id>/images', RoomImageViewSet.as_view({'post': 'create',  # isAuthenticated && hasRoom
-                                                       'put': 'reorder'})),  # isAuthenticated && hasRoom
-    path('<room_id>/images/<image_id>', RoomImageViewSet.as_view({'delete': 'destroy'}))  # isAuthenticated && hasRoom
+    path('', RoomViewSet.as_view({'get': 'list',
+                                  'post': 'create'})),
+    path('images', RoomImageViewSet.as_view({'post': 'create'})),
+    path('images/<image_id>', RoomImageViewSet.as_view({'delete': 'destroy'})),
+    path('<room_id>', RoomViewSet.as_view({'get': 'retrieve',
+                                           'put': 'update',
+                                           'delete': 'destroy'})),
+    path('<room_id>/refresh', RoomBumpViewSet.as_view({'post': 'bump'})),
+    path('<room_id>/images', RoomImageViewSet.as_view({'post': 'create',
+                                                       'put': 'reorder'}))
 ]

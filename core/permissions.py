@@ -21,3 +21,21 @@ class IsRoomOwnerOrReadOnly(permissions.BasePermission):
 
         # Instance must have an attribute named `user`.
         return obj.user == request.user
+
+
+class IsRoomPropOwnerOrReadyOnly(permissions.BasePermission):
+    """
+    If the user in incoming request owns room, then this user can has
+    permission to perform job on room's properties such as images.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # Permissions are only allowed to the owner of the room.
+        if type(obj) is Room:
+            return obj.user == request.user
+        return obj.room.user == request.user

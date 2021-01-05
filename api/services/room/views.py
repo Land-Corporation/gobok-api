@@ -15,7 +15,7 @@ from rest_framework.response import Response
 
 from api.models.room.models import Room
 from api.models.room_image.models import RoomImage
-from core.permissions import IsRoomOwnerOrReadOnly
+from core.permissions import IsRoomOwnerOrReadOnly, IsRoomPropOwnerOrReadyOnly
 from core.utils import process_image_data_from_request, convert_image_to_thumbnail
 from infra.gcloud_storage import GCloudStorage
 from .serializers import (
@@ -51,9 +51,6 @@ class RoomViewSet(viewsets.ModelViewSet):
         room_id = self.kwargs.get('room_id')
         room = get_object_or_404(self.get_queryset(), id=room_id)
 
-        # check object permission
-        self.check_object_permissions(request, room)
-
         # count hit and record
         hit_count = HitCount.objects.get_for_object(room)
         HitCountMixin.hit_count(request, hit_count)
@@ -78,23 +75,14 @@ class RoomViewSet(viewsets.ModelViewSet):
         return instance
 
     def update(self, request, *args, **kwargs):
-        room = self.get_object()
-
-        # check object permission
-        self.check_object_permissions(request, room)
-
-        # serialize
+        room = self.get_object()  # performs check_object_permission
         serializer = self.get_serializer(room, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response({'detail': 'updated room info'}, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
-        room = self.get_object()
-
-        # check object permission
-        self.check_object_permissions(request, room)
-
+        room = self.get_object()  # performs check_object_permission
         if not room.is_public:
             return Response({'detail': f'room(id={room.id}) already deleted'},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -108,9 +96,10 @@ class RoomBumpViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all().filter(is_public=True)
     serializer_class = RoomDefaultViewSerializer
     lookup_url_kwarg = 'room_id'
+    permission_classes = (IsAuthenticated & IsRoomOwnerOrReadOnly,)
 
     def bump(self, request, *args, **kwargs):
-        room = self.get_object()
+        room = self.get_object()  # performs check_object_permission
         now_time = datetime.now(timezone.utc)
         time_elapsed = int((now_time - room.bumped_at).total_seconds())
 
@@ -131,6 +120,7 @@ class RoomImageViewSet(viewsets.ModelViewSet):
     parser_classes = (MultiPartParser, JSONParser)
     queryset = RoomImage.objects.all().filter(is_public=True)
     lookup_url_kwarg = 'image_id'
+    permission_classes = (IsAuthenticated, IsRoomPropOwnerOrReadyOnly,)
 
     def create(self, request, *args, **kwargs):
         # process image file sent
@@ -154,11 +144,20 @@ class RoomImageViewSet(viewsets.ModelViewSet):
 
         # case1) requested AFTER room creation
         data = {'url': public_url}
-        if 'room_id' in self.kwargs:  # if '<room_id>' in url path
-            data['room_id'] = self.kwargs.get('room_id', None)
+        # if '<room_id>' in url path
+        # meaning, creating image in room edit page etc
+        if 'room_id' in self.kwargs:
+            room_id = self.kwargs.get('room_id', None)
+
+            # check object permission
+            self.check_object_permissions(request, Room.objects.get(id=room_id))
+
+            # serialize
+            data['room_id'] = room_id
             serializer = PostCreateRoomImageSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
+
         # case2) requested BEFORE room creation
         else:
             serializer = OnCreateRoomImageSerializer(data=data)
@@ -172,11 +171,16 @@ class RoomImageViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'send list of image_ids by order desired'},
                             status=status.HTTP_400_BAD_REQUEST)
         room = Room.objects.get(id=self.kwargs['room_id'])
+
+        # check permission
+        self.check_object_permissions(request, room)
+
+        # reorder
         room.set_roomimage_order(image_id_order)
         return Response({'detail': 'reordered room images'}, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
-        image = self.get_object()
+        image = self.get_object()  # performs check_object_permission
         image.is_public = False
         image.save(update_fields=['is_public'])
         return Response({'detail': 'deleted image'}, status=status.HTTP_200_OK)
