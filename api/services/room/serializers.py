@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from hitcount.models import HitCount
 from rest_framework import serializers
 
 from api.models.room.models import Room
@@ -86,28 +87,34 @@ class RoomDefaultViewSerializer(serializers.ModelSerializer):
 class RoomDetailViewSerializer(serializers.ModelSerializer):
     images = serializers.ListField(read_only=True)
     nickname = serializers.CharField(read_only=True)
+    view_count = serializers.IntegerField(read_only=True)
 
     def to_representation(self, instance):
         room_images = RoomImage.objects.filter(room=instance, is_public=True)
+
+        # inject required fields
         instance.images = OnCreateRoomImageSerializer(room_images, many=True).data
         instance.nickname = instance.user.nickname
-        ret = super().to_representation(instance)
-        return ret
-
-    class Meta:
-        model = Room
-        # TODO: add field 'view_count' ...
-        fields = ['id', 'nickname', 'title', 'content', 'bumped_at', 'images']
-
-
-class RoomListViewSerializer(serializers.ModelSerializer):
-    thumbnail = ThumbnailImageSerializer()  # only one thumbnail image
-
-    def to_representation(self, instance):
-        instance.thumbnail = RoomImage.objects.filter(room=instance, is_public=True)[0]
+        instance.view_count = HitCount.objects.get_for_object(instance).hits
         return super().to_representation(instance)
 
     class Meta:
         model = Room
         # TODO: add field 'view_count' ...
-        fields = ['id', 'title', 'bumped_at', 'thumbnail']
+        fields = ['id', 'nickname', 'title', 'content',
+                  'view_count', 'bumped_at', 'images']
+
+
+class RoomListViewSerializer(serializers.ModelSerializer):
+    thumbnail = ThumbnailImageSerializer()  # only one thumbnail image
+    view_count = serializers.IntegerField(read_only=True)
+
+    def to_representation(self, instance):
+        instance.thumbnail = RoomImage.objects.filter(room=instance, is_public=True)[0]
+        instance.view_count = HitCount.objects.get_for_object(instance).hits
+        return super().to_representation(instance)
+
+    class Meta:
+        model = Room
+        # TODO: add field 'view_count' ...
+        fields = ['id', 'title', 'view_count', 'bumped_at', 'thumbnail']

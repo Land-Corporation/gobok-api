@@ -5,6 +5,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from hitcount.models import HitCount
+from hitcount.views import HitCountMixin
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.parsers import MultiPartParser, JSONParser
@@ -46,14 +48,9 @@ class RoomViewSet(viewsets.ModelViewSet):
         room_id = self.kwargs.get('room_id')
         room = get_object_or_404(self.get_queryset(), id=room_id)
 
-        from hitcount.models import HitCount
-        from hitcount.views import HitCountMixin
-        # first get the related HitCount object for your model object
+        # count hit and record
         hit_count = HitCount.objects.get_for_object(room)
-
-        # next, you can attempt to count a hit and get the response
-        # you need to pass it the request object as well
-        hit_count_response = HitCountMixin.hit_count(request, hit_count)
+        HitCountMixin.hit_count(request, hit_count)
 
         serializer = self.get_serializer(room)
         return Response({'data': serializer.data}, status=status.HTTP_200_OK)

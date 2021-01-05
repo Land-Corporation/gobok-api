@@ -3,13 +3,13 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 
 from api.models.room.models import Room
-from api.services.room.serializers import RoomDefaultViewSerializer
+from api.services.room.serializers import RoomDetailViewSerializer
 from .serializers import FeedbackSerializer
 
 
 class MyRoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all().filter(is_public=True)
-    serializer_class = RoomDefaultViewSerializer
+    serializer_class = RoomDetailViewSerializer
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
