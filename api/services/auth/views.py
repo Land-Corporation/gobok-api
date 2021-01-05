@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from django.core.validators import validate_email
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_jwt.settings import api_settings
 
@@ -12,9 +13,10 @@ jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 
 
-class VerificationCodeViewSet(viewsets.ViewSet):
-    @staticmethod
-    def create(request):
+class VerificationCodeViewSet(viewsets.ModelViewSet):
+    permission_classes = (AllowAny,)
+
+    def create(self, request, *args, **kwargs):
         """ Generate Verification Code and send this code to target Email """
         email = request.data.get('email', None)
 
@@ -39,9 +41,10 @@ class VerificationCodeViewSet(viewsets.ViewSet):
         return Response({'detail': 'send code'}, status=status.HTTP_200_OK)
 
 
-class LoginViewSet(viewsets.ViewSet):
-    @staticmethod
-    def create(request):
+class LoginViewSet(viewsets.ModelViewSet):
+    permission_classes = (AllowAny,)
+
+    def create(self, request, *args, **kwargs):
         email = request.data.get('email', None)
         code = request.data.get('code', None)
 
