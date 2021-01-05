@@ -20,8 +20,8 @@ API_VERSION = 'v1'
 # Verification Code setting
 EMAIL_CODE_DIGIT = 4
 EMAIL_CODE_LIFETIME_MIN = 5
-# Verification Code setting
-POST_BUMP_CYCLE_SEC = 24 * 60 * 60  # 끌올 주기 (24h)
+# Room Bump setting
+BUMP_CYCLE_SEC = 24 * 60 * 60  # 끌올 주기 (24h)
 # Image thumbnail setting
 THUMBNAIL_DIMENSION = (128, 128)  # 128x128
 THUMBNAIL_URL_SUFFIX = '=thumbnail'  # https://<PUBLIC_URL_TO_IMAGE>=thumbnail
@@ -156,11 +156,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # DRF configuration
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
 }

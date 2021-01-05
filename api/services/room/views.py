@@ -10,10 +10,12 @@ from hitcount.views import HitCountMixin
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.parsers import MultiPartParser, JSONParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.models.room.models import Room
 from api.models.room_image.models import RoomImage
+from core.permissions import IsRoomOwnerOrReadOnly
 from core.utils import process_image_data_from_request, convert_image_to_thumbnail
 from infra.gcloud_storage import GCloudStorage
 from .serializers import (
@@ -31,6 +33,7 @@ class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all().filter(is_public=True)
     serializer_class = RoomDefaultViewSerializer
     lookup_url_kwarg = 'room_id'
+    permission_classes = (IsAuthenticated & IsRoomOwnerOrReadOnly,)
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -47,6 +50,9 @@ class RoomViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         room_id = self.kwargs.get('room_id')
         room = get_object_or_404(self.get_queryset(), id=room_id)
+
+        # check object permission
+        self.check_object_permissions(request, room)
 
         # count hit and record
         hit_count = HitCount.objects.get_for_object(room)
@@ -72,14 +78,23 @@ class RoomViewSet(viewsets.ModelViewSet):
         return instance
 
     def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        room = self.get_object()
+
+        # check object permission
+        self.check_object_permissions(request, room)
+
+        # serialize
+        serializer = self.get_serializer(room, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response({'detail': 'updated room info'}, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         room = self.get_object()
+
+        # check object permission
+        self.check_object_permissions(request, room)
+
         if not room.is_public:
             return Response({'detail': f'room(id={room.id}) already deleted'},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -97,11 +112,11 @@ class RoomBumpViewSet(viewsets.ModelViewSet):
     def bump(self, request, *args, **kwargs):
         room = self.get_object()
         now_time = datetime.now(timezone.utc)
-        time_elapsed = (now_time - room.bumped_at).seconds
+        time_elapsed = int((now_time - room.bumped_at).total_seconds())
 
         # check if able to bump
-        if time_elapsed < settings.POST_BUMP_CYCLE_SEC:
-            remaining_time = settings.POST_BUMP_CYCLE_SEC - time_elapsed
+        if time_elapsed < settings.BUMP_CYCLE_SEC:
+            remaining_time = settings.BUMP_CYCLE_SEC - time_elapsed
             return Response({'detail': f'bump cycle for room(id={room.id}) not reached. '
                                        f'please wait {remaining_time}sec'},
                             status=status.HTTP_403_FORBIDDEN)
