@@ -43,7 +43,7 @@ DEBUG = True
 # have ALLOWED_HOSTS = ['*'] when the app is deployed. If you deploy a Django
 # app not on App Engine, make sure to set an appropriate host here.
 # See https://docs.djangoproject.com/en/2.1/ref/settings/
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['http://landapptest-env.eba-iiswp3qi.ap-northeast-2.elasticbeanstalk.com/']
 
 # Application definition
 
@@ -111,9 +111,10 @@ if os.getenv('GAE_APPLICATION', None):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': '/cloudsql/landproject-300104:asia-northeast3:landapp-mysql',
+
+            'HOST': '/cloudsql/landapp-prod:asia-northeast3:landapp-mysql',
             'USER': 'root',
-            'PASSWORD': 'LhiMIsD70ssE8JFi',
+            'PASSWORD': 'L@ndLoRd!0724',
             'NAME': 'landapp',
         }
     }
