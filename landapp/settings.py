@@ -111,7 +111,7 @@ if os.getenv('GAE_APPLICATION', None):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': '/cloudsql/landproject-300104:asia-northeast3:landapp-mysql',
+            'HOST': '/cloudsql/landproject-300105:asia-northeast3:landapp-mysql',
             'USER': 'root',
             'PASSWORD': 'LhiMIsD70ssE8JFi',
             'NAME': 'landapp',
@@ -214,7 +214,7 @@ EMAIL_PORT = 587
 
 # Infra setting
 # Google Cloud Storage setting
-GCS_BUCKET_NAME = 'landproject-300104.appspot.com'
+GCS_BUCKET_NAME = 'landproject-300105.appspot.com'
 GCS_IMAGE_FOLDER_NAME = 'images'  # folder name that image will be uploaded to
 
 # Internationalization

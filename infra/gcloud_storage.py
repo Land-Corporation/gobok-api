@@ -8,7 +8,6 @@ class GCloudStorage:
     PUBLIC_URI_PREFIX = 'https://storage.googleapis.com'
 
     def __init__(self, bucket_name=getattr(settings, 'GCS_BUCKET_NAME', None)):
-        self._map_image = None
         storage_client = storage.Client()
         self.bucket = storage_client.bucket(bucket_name)
 
