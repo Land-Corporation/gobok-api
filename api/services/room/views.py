@@ -17,7 +17,6 @@ from api.models.room.models import Room
 from api.models.room_image.models import RoomImage
 from core.permissions import IsRoomOwnerOrReadOnly, IsRoomPropOwnerOrReadyOnly
 from core.utils import process_image_data_from_request, convert_image_to_thumbnail
-from infra.gcloud_storage import GCloudStorage
 from .serializers import (
     RoomDefaultViewSerializer,
     RoomDetailViewSerializer,
@@ -25,9 +24,6 @@ from .serializers import (
     OnCreateRoomImageSerializer,
     PostCreateRoomImageSerializer
 )
-
-gcs = GCloudStorage()
-
 
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all().filter(is_public=True)
@@ -142,18 +138,18 @@ class RoomImageViewSet(viewsets.ModelViewSet):
 
         # Upload all to GCS
         image_filename = uuid.uuid4().hex  # use uuid4 for randomness
-        gcs.upload_image_from_bytes(image_filename, image_bytes, make_public=True)
-
-        # create thumbnail and upload to GCS
-        thumbnail_bytes = convert_image_to_thumbnail(image_bytes)
-        gcs.upload_image_from_bytes(f'{image_filename}{settings.THUMBNAIL_URL_SUFFIX}',
-                                    thumbnail_bytes, make_public=True)
-
-        # get public url
-        public_url = gcs.get_image_public_access_url(image_filename)
+        # gcs.upload_image_from_bytes(image_filename, image_bytes, make_public=True)
+        #
+        # # create thumbnail and upload to GCS
+        # thumbnail_bytes = convert_image_to_thumbnail(image_bytes)
+        # gcs.upload_image_from_bytes(f'{image_filename}{settings.THUMBNAIL_URL_SUFFIX}',
+        #                             thumbnail_bytes, make_public=True)
+        #
+        # # get public url
+        # public_url = gcs.get_image_public_access_url(image_filename)
 
         # case1) requested AFTER room creation
-        data = {'url': public_url}
+        data = {'url': 'pub_test'}  # TODO
         # if '<room_id>' in url path
         # meaning, creating image in room edit page etc
         if 'room_id' in self.kwargs:

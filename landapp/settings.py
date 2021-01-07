@@ -9,8 +9,9 @@ https://docs.djangoproject.com/en/2.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
-
 import os
+
+import requests
 
 # NEED OVERRIDE
 # This value is used in URL path, Swagger, GCS blob save dir etc.
@@ -43,10 +44,43 @@ DEBUG = True
 # have ALLOWED_HOSTS = ['*'] when the app is deployed. If you deploy a Django
 # app not on App Engine, make sure to set an appropriate host here.
 # See https://docs.djangoproject.com/en/2.1/ref/settings/
-ALLOWED_HOSTS = ['landapptest-env.eba-iiswp3qi.ap-northeast-2.elasticbeanstalk.com']
+ALLOWED_HOSTS = ['landapp-dev-env.eba-hbggz7bm.ap-northeast-2.elasticbeanstalk.com']
+
+# Dynamically add EC2 IP address to ALLOWED_HOSTS
+# https://stackoverflow.com/a/54739284
+# https://hashedin.com/2017/01/06/5-gotchas-with-elastic-beanstalk-and-django/
+# def is_ec2_linux():
+#     """Detect if we are running on an EC2 Linux Instance
+#        See http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/identify_ec2_instances.html
+#     """
+#     if os.path.isfile("/sys/hypervisor/uuid"):
+#         with open("/sys/hypervisor/uuid") as f:
+#             uuid = f.read()
+#             return uuid.startswith("ec2")
+#     return False
+#
+#
+# def get_linux_ec2_private_ip():
+#     """Get the private IP Address of the machine if running on an EC2 linux server"""
+#     from urllib.request import urlopen
+#     if not is_ec2_linux():
+#         return None
+#     try:
+#         response = urlopen('http://169.254.169.254/latest/meta-data/local-ipv4')
+#         ec2_ip = response.read().decode('utf-8')
+#         if response:
+#             response.close()
+#         return ec2_ip
+#     except Exception as e:
+#         print(e)
+#         return None
+
+#
+# private_ip = get_linux_ec2_private_ip()
+# if private_ip:
+#     ALLOWED_HOSTS.append(private_ip)
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -66,6 +100,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'core.middleware.ELBHealthCheckMiddleware',  # handle ELB health check packet
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -156,28 +191,6 @@ JWT_AUTH = {
     'JWT_VERIFY_EXPIRATION': False,
 }
 
-# Swagger settings
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'basic': {
-            'type': 'basic',
-        },
-    },
-    'LOGIN_URL': '/admin/login/',
-    'LOGOUT_URL': '/admin/logout/',
-    'USE_SESSION_AUTH': True,
-    'DOC_EXPANSION': 'None',
-    'DEEP_LINKING': True,
-    'DEFAULT_MODEL_DEPTH': 1,
-    'DISPLAY_OPERATION_ID': False,
-    'REFETCH_SCHEMA_WITH_AUTH': True,
-    'REFETCH_SCHEMA_ON_LOGOUT': True,
-}
-REDOC_SETTINGS = {
-    'PATH_IN_MIDDLE': True,
-    'REQUIRED_PROPS_FIRST': True,
-}
-
 # Email setting
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
@@ -186,11 +199,6 @@ EMAIL_HOST_USER = 'jin@landcorp.io'
 EMAIL_HOST_PASSWORD = 'jpyqgmmmhyfpvxvr'
 DEFAULT_FROM_EMAIL = 'support@landcorp.io'
 EMAIL_PORT = 587
-
-# Infra setting
-# Google Cloud Storage setting
-GCS_BUCKET_NAME = 'landproject-300104.appspot.com'
-GCS_IMAGE_FOLDER_NAME = 'images'  # folder name that image will be uploaded to
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
