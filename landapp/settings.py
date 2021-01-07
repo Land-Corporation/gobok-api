@@ -43,7 +43,7 @@ DEBUG = True
 # have ALLOWED_HOSTS = ['*'] when the app is deployed. If you deploy a Django
 # app not on App Engine, make sure to set an appropriate host here.
 # See https://docs.djangoproject.com/en/2.1/ref/settings/
-ALLOWED_HOSTS = ['http://landapptest-env.eba-iiswp3qi.ap-northeast-2.elasticbeanstalk.com/']
+ALLOWED_HOSTS = ['landapptest-env.eba-iiswp3qi.ap-northeast-2.elasticbeanstalk.com']
 
 # Application definition
 
@@ -104,38 +104,12 @@ import pymysql  # noqa: 402
 pymysql.version_info = (1, 4, 6, 'final', 0)  # change mysqlclient version
 pymysql.install_as_MySQLdb()
 
-# [START db_setup]
-if os.getenv('GAE_APPLICATION', None):
-    # Running on production App Engine, so connect to Google Cloud SQL using
-    # the unix socket at /cloudsql/<your-cloudsql-connection string>
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-
-            'HOST': '/cloudsql/landapp-prod:asia-northeast3:landapp-mysql',
-            'USER': 'root',
-            'PASSWORD': 'L@ndLoRd!0724',
-            'NAME': 'landapp',
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'default.sqlite3'),
     }
-else:
-    # Running locally so connect to either a local MySQL instance or connect to
-    # Cloud SQL via the proxy. To start the proxy via command line:
-    #
-    #     $ cloud_sql_proxy -instances=[INSTANCE_CONNECTION_NAME]=tcp:3306
-    #
-    # See https://cloud.google.com/sql/docs/mysql-connect-proxy
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'HOST': '127.0.0.1',
-            'PORT': '3306',
-            'NAME': 'landapp',
-            'USER': 'jin',
-            'PASSWORD': 'Wjdwls93@',
-        }
-    }
-# [END db_setup]
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
