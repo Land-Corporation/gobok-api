@@ -44,7 +44,7 @@ DEBUG = True
 # have ALLOWED_HOSTS = ['*'] when the app is deployed. If you deploy a Django
 # app not on App Engine, make sure to set an appropriate host here.
 # See https://docs.djangoproject.com/en/2.1/ref/settings/
-ALLOWED_HOSTS = ['landapp-dev-env.eba-hbggz7bm.ap-northeast-2.elasticbeanstalk.com']
+ALLOWED_HOSTS = ['land-dev-env.eba-zurhs7tz.ap-northeast-2.elasticbeanstalk.com']
 
 # Application definition
 INSTALLED_APPS = [
