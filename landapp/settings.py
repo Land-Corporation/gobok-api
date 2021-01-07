@@ -96,21 +96,24 @@ WSGI_APPLICATION = 'landapp.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
-
-# Install PyMySQL as mysqlclient/MySQLdb to use Django's mysqlclient adapter
-# See https://docs.djangoproject.com/en/2.1/ref/databases/#mysql-db-api-drivers
-# for more information
-import pymysql  # noqa: 402
-
-pymysql.version_info = (1, 4, 6, 'final', 0)  # change mysqlclient version
-pymysql.install_as_MySQLdb()
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'default.sqlite3'),
+if 'RDS_DB_NAME' in os.environ:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ['RDS_DB_NAME'],
+            'HOST': os.environ['RDS_HOSTNAME'],
+            'PORT': os.environ['RDS_PORT'],
+            'USER': os.environ['RDS_USERNAME'],
+            'PASSWORD': os.environ['RDS_PASSWORD'],
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'default.sqlite3'),
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
