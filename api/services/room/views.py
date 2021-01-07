@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from api.models.room.models import Room
 from api.models.room_image.models import RoomImage
 from core.permissions import IsRoomOwnerOrReadOnly, IsRoomPropOwnerOrReadyOnly
-from core.utils import process_image_data_from_request, convert_image_to_thumbnail
+from core.utils import process_image_data_from_request
 from .serializers import (
     RoomDefaultViewSerializer,
     RoomDetailViewSerializer,
@@ -24,6 +24,7 @@ from .serializers import (
     OnCreateRoomImageSerializer,
     PostCreateRoomImageSerializer
 )
+
 
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all().filter(is_public=True)

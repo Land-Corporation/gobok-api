@@ -44,7 +44,15 @@ DEBUG = True
 # have ALLOWED_HOSTS = ['*'] when the app is deployed. If you deploy a Django
 # app not on App Engine, make sure to set an appropriate host here.
 # See https://docs.djangoproject.com/en/2.1/ref/settings/
-ALLOWED_HOSTS = ['land-dev-env.eba-zurhs7tz.ap-northeast-2.elasticbeanstalk.com']
+ALLOWED_HOSTS = ['landapp-test-env.ap-northeast-2.elasticbeanstalk.com']
+
+EC2_PRIVATE_IP = None
+try:
+    EC2_PRIVATE_IP = requests.get('http://169.254.169.254/latest/meta-data/local-ipv4', timeout=0.01).text
+except requests.exceptions.RequestException:
+    pass
+if EC2_PRIVATE_IP:
+    ALLOWED_HOSTS.append(EC2_PRIVATE_IP)
 
 # Application definition
 INSTALLED_APPS = [
@@ -57,16 +65,17 @@ INSTALLED_APPS = [
     'drf_yasg',
     'django_extensions',
     'hitcount',
+    'landapp',  # for custom command install
     'api.models.user',
     'api.models.room',
     'api.models.room_image',
-    'api.models.feedback'
+    'api.models.feedback',
+
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'core.middleware.ELBHealthCheckMiddleware',  # handle ELB health check packet
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -79,7 +88,7 @@ ROOT_URLCONF = 'landapp.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -99,19 +108,19 @@ WSGI_APPLICATION = 'landapp.wsgi.application'
 if 'RDS_DB_NAME' in os.environ:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql',
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'NAME': os.environ['RDS_DB_NAME'],
-            'HOST': os.environ['RDS_HOSTNAME'],
-            'PORT': os.environ['RDS_PORT'],
             'USER': os.environ['RDS_USERNAME'],
             'PASSWORD': os.environ['RDS_PASSWORD'],
+            'HOST': os.environ['RDS_HOSTNAME'],
+            'PORT': os.environ['RDS_PORT'],
         }
     }
 else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'default.sqlite3'),
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
 
