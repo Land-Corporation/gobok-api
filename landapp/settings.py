@@ -44,7 +44,7 @@ DEBUG = True
 # have ALLOWED_HOSTS = ['*'] when the app is deployed. If you deploy a Django
 # app not on App Engine, make sure to set an appropriate host here.
 # See https://docs.djangoproject.com/en/2.1/ref/settings/
-ALLOWED_HOSTS = ['landapp-test-env.ap-northeast-2.elasticbeanstalk.com']
+ALLOWED_HOSTS = ['*']
 
 EC2_PRIVATE_IP = None
 try:
@@ -66,10 +66,13 @@ INSTALLED_APPS = [
     'django_extensions',
     'hitcount',
     'landapp',  # for custom command install
+    'storages',
+    'sorl.thumbnail',
     'api.models.user',
     'api.models.room',
     'api.models.room_image',
     'api.models.feedback',
+    'api.models.image_test',
 
 ]
 
@@ -123,6 +126,18 @@ else:
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
+
+# django-storage for AWS S3 config
+DEFAULT_FILE_STORAGE = 'infra.s3_storage.S3DefaultFileStorage'
+AWS_ACCESS_KEY_ID = 'AKIAUMHSG7JBWFZBLQXP'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'landapp-test-s3'
+AWS_STORAGE_IMAGE_LOCATION = 'image'
+AWS_STORAGE_FILE_LOCATION = 'file'
+AWS_STORAGE_MEDIA_LOCATION = 'media'
+# Allow Signature V4 support
+# https://github.com/jschneier/django-storages/issues/687
+AWS_S3_SIGNATURE_VERSION = 's3v4'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators

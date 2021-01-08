@@ -16,7 +16,8 @@ from rest_framework.response import Response
 from api.models.room.models import Room
 from api.models.room_image.models import RoomImage
 from core.permissions import IsRoomOwnerOrReadOnly, IsRoomPropOwnerOrReadyOnly
-from core.utils import process_image_data_from_request
+from core.utils import convert_image_to_thumbnail
+from infra.s3_storage import S3ImageStorage
 from .serializers import (
     RoomDefaultViewSerializer,
     RoomDetailViewSerializer,
@@ -130,27 +131,23 @@ class RoomImageViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         # process image file sent
-        try:
-            image_bytes = process_image_data_from_request(request)
-        except FileNotFoundError:
+        image_obj = request.FILES.get('file', None)
+        if not image_obj:
             return Response({'status': 400,
                              'detail': 'send request with image file'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # Upload all to GCS
         image_filename = uuid.uuid4().hex  # use uuid4 for randomness
-        # gcs.upload_image_from_bytes(image_filename, image_bytes, make_public=True)
-        #
-        # # create thumbnail and upload to GCS
-        # thumbnail_bytes = convert_image_to_thumbnail(image_bytes)
-        # gcs.upload_image_from_bytes(f'{image_filename}{settings.THUMBNAIL_URL_SUFFIX}',
-        #                             thumbnail_bytes, make_public=True)
-        #
-        # # get public url
-        # public_url = gcs.get_image_public_access_url(image_filename)
+        thumbnail_filename = f'{image_filename}{settings.THUMBNAIL_URL_SUFFIX}'
+        thumbnail_obj = convert_image_to_thumbnail(image_obj)
+
+        # save images
+        s3_storage = S3ImageStorage()
+        s3_storage.save(image_filename, image_obj)  # original
+        s3_storage.save(thumbnail_filename, thumbnail_obj)  # thumbnail
 
         # case1) requested AFTER room creation
-        data = {'url': 'pub_test'}  # TODO
+        data = {'filename': image_filename}
         # if '<room_id>' in url path
         # meaning, creating image in room edit page etc
         if 'room_id' in self.kwargs:

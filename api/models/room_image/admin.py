@@ -9,7 +9,7 @@ class RoomPhotoAdmin(admin.ModelAdmin):
     list_display = [
         'id',
         'room',
-        'url',
+        'filename',
         '_order',
         'is_public',
         'created',
@@ -18,5 +18,5 @@ class RoomPhotoAdmin(admin.ModelAdmin):
     search_fields = [
         'id',
         'room',
-        'url',
+        'filename',
     ]

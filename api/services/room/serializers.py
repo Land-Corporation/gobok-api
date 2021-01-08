@@ -1,11 +1,11 @@
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from hitcount.models import HitCount
 from rest_framework import serializers
 
 from api.models.room.models import Room
 from api.models.room_image.models import RoomImage
-
+from infra.s3_storage import S3ImageStorage
+from django.conf import settings
 
 # ----------------------
 # |  Nested Serializer |
@@ -17,7 +17,7 @@ class OnCreateRoomImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RoomImage
-        fields = ['id', 'url']
+        fields = ['id', 'filename']
 
 
 class PostCreateRoomImageSerializer(serializers.ModelSerializer):
@@ -26,32 +26,36 @@ class PostCreateRoomImageSerializer(serializers.ModelSerializer):
     room_id = serializers.IntegerField()
 
     def to_representation(self, instance):
+        """ Should return pre-signed AWS S3 url """
         ret = super().to_representation(instance)
+        filename = ret.pop('filename')
+        ret['url'] = S3ImageStorage().url(filename)
         ret.pop('room_id')
         return ret
 
     def create(self, validated_data):
         room_id = validated_data.get('room_id')
-        url = validated_data.get('url')
+        filename = validated_data.get('filename')
         room = Room.objects.get(id=room_id)
-        room_image = RoomImage.objects.create(room=room, url=url)
+        room_image = RoomImage.objects.create(room=room, filename=filename)
         return room_image
 
     class Meta:
         model = RoomImage
-        fields = ['id', 'room_id', 'url']
+        fields = ['id', 'room_id', 'filename']
 
 
 class ThumbnailImageSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         # add thumbnail url suffix
         ret = super().to_representation(instance)
-        ret['url'] = f"{ret['url']}{settings.THUMBNAIL_URL_SUFFIX}"
+        thumbnail_filename = f'{ret["filename"]}/{settings.THUMBNAIL_URL_SUFFIX}'
+        ret['url'] = S3ImageStorage().url(thumbnail_filename)
         return ret
 
     class Meta:
         model = RoomImage
-        fields = ['url']
+        fields = ['filename']
 
 
 # -----------------------
@@ -73,10 +77,10 @@ class RoomDefaultViewSerializer(serializers.ModelSerializer):
         room = Room.objects.create(**validated_data)
         # link room with room_image
         for image in images:
-            url = image.get('url', None)
-            if not url:
+            filename = image.get('filename', None)
+            if not filename:
                 continue
-            RoomImage.objects.create(room=room, url=url)
+            RoomImage.objects.create(room=room, filename=filename)
         return room
 
     class Meta:
@@ -116,5 +120,4 @@ class RoomListViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Room
-        # TODO: add field 'view_count' ...
         fields = ['id', 'title', 'view_count', 'bumped_at', 'thumbnail']

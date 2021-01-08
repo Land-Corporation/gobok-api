@@ -13,9 +13,17 @@ def process_image_data_from_request(request) -> bytes:
     return mem_file.file.read()
 
 
-def convert_image_to_thumbnail(original_image: bytes) -> bytes:
+def convert_bytes_image_to_bytes_thumbnail(original_image: bytes) -> bytes:
     image = Image.open(io.BytesIO(original_image))
     resized = image.resize(settings.THUMBNAIL_DIMENSION)
     buf = io.BytesIO()
     resized.save(buf, format='JPEG')
     return buf.getvalue()
+
+
+def convert_image_to_thumbnail(original_image):
+    image = Image.open(original_image)
+    image.thumbnail(settings.THUMBNAIL_DIMENSION, Image.ANTIALIAS)
+    thumb_obj = io.BytesIO()
+    image.save(thumb_obj, format='JPEG')
+    return thumb_obj
