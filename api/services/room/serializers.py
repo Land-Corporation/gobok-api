@@ -92,13 +92,15 @@ class RoomDetailViewSerializer(serializers.ModelSerializer):
     images = serializers.ListField(read_only=True)
     nickname = serializers.CharField(read_only=True)
     view_count = serializers.IntegerField(read_only=True)
+    is_mine = serializers.BooleanField(default=False)
 
     def to_representation(self, instance):
         room_images = RoomImage.objects.filter(room=instance, is_public=True)
 
         # inject required fields
         instance.images = OnCreateRoomImageSerializer(room_images, many=True).data
-        instance.nickname = instance.user.nickname
+        # only show first two letters (ch****)
+        instance.nickname = f'{instance.user.nickname[:2]}****'
         instance.view_count = HitCount.objects.get_for_object(instance).hits
         return super().to_representation(instance)
 
@@ -106,7 +108,7 @@ class RoomDetailViewSerializer(serializers.ModelSerializer):
         model = Room
         # TODO: add field 'view_count' ...
         fields = ['id', 'nickname', 'title', 'content',
-                  'view_count', 'bumped_at', 'images']
+                  'view_count', 'is_mine', 'bumped_at', 'images']
 
 
 class RoomListViewSerializer(serializers.ModelSerializer):

@@ -54,6 +54,9 @@ class RoomViewSet(viewsets.ModelViewSet):
         hit_count = HitCount.objects.get_for_object(room)
         HitCountMixin.hit_count(request, hit_count)
 
+        # check whether room's owner is requester
+        room.is_mine = room.user == request.user
+
         serializer = self.get_serializer(room)
         return Response({'status': 200,
                          'data': serializer.data}, status=status.HTTP_200_OK)
