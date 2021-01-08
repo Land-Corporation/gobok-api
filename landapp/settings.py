@@ -111,7 +111,7 @@ if os.getenv('GAE_APPLICATION', None):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': '/cloudsql/landproject-300104:asia-northeast3:landapp-mysql',
+            'HOST': '/cloudsql/landproject-300105:asia-northeast3:landapp-mysql',
             'USER': 'root',
             'PASSWORD': 'LhiMIsD70ssE8JFi',
             'NAME': 'landapp',
