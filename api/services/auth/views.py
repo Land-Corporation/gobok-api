@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.template.loader import render_to_string
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
@@ -37,12 +39,13 @@ class VerificationCodeViewSet(viewsets.ModelViewSet):
                 return Response({'status': 406,
                                  'detail': f'요청하신 이메일 도메인({e.message})은 지원하지 않습니다😥'},
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        subject = f'[안암랜드] 인증코드 {user.code}'
-        message = f'인증코드입니다: {user.code}'
-        user.email_code(subject, message)
-        return Response({'status': 200,
-                         'detail': '인증코드를 전송했습니다!😀'}, status=status.HTTP_200_OK)
+        # send verification email
+        code = user.code
+        subject = f'[안암랜드] 인증코드 {code}'
+        msg_html = render_to_string('email_verification.html', {'code': code})
+        user.email_code(subject, '', settings.DEFAULT_FROM_EMAIL, html_message=msg_html)
+        return Response({'status': 200, 'detail': '인증코드를 전송했습니다!😀'},
+                        status=status.HTTP_200_OK)
 
 
 class LoginViewSet(viewsets.ModelViewSet):

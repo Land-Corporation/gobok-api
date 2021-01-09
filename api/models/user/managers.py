@@ -12,7 +12,6 @@ class UserManager(BaseUserManager):
         # TODO: Currently saves email name as nickname.
         #  Need to change this behavior later on
         nickname, _, domain = email.partition("@")
-        print(nickname, domain)
 
         # check email domain
         if domain not in settings.ALLOWED_EMAIL_DOMAIN:
