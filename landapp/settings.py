@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+import socket
+
 from django.core.validators import EmailValidator
 
 # NEED OVERRIDE
@@ -36,6 +38,8 @@ ALLOWED_EMAIL_DOMAIN = (
     'korea.ac.kr',
 )
 
+# Slack #feedback chanel webhook integration
+SLACK_FEEDBACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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'
 """[END] LAND APP SETTING """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -127,6 +131,9 @@ if os.getenv('GAE_APPLICATION', None):
             'USER': 'root',
             'PASSWORD': 'LhiMIsD70ssE8JFi',
             'NAME': 'landapp',
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+                'use_unicode': True, },
         }
     }
 else:
@@ -144,6 +151,9 @@ else:
             'NAME': 'landapp',
             'USER': 'jin',
             'PASSWORD': 'Wjdwls93@',
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+                'use_unicode': True, },
         }
     }
 # [END db_setup]

@@ -1,11 +1,11 @@
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
-
+from django.conf import settings
 from api.models.room.models import Room
 from api.services.room.serializers import RoomDetailViewSerializer
 from .serializers import FeedbackSerializer
-
+import requests
 
 class MyRoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all().filter(is_public=True)
@@ -30,6 +30,15 @@ class MyFeedbackViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+
+        # trigger Slack webhook
+        title = serializer.data['title']
+        content = serializer.data['content']
+        payload = {"text": f'*작성자*: {request.user.email}\n'
+                           f'*제목*: {title}\n'
+                           f'*내용*: {content}'}
+        requests.post(settings.SLACK_FEEDBACK_WEBHOOK_URL, json=payload)
+
         return Response({'status': 200,
                          'detail': 'feedback sent'}, status=status.HTTP_200_OK)
 
