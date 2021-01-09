@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
@@ -23,8 +23,6 @@ class VerificationCodeViewSet(viewsets.ModelViewSet):
         if not email:
             return Response(data={'detail': 'Please provide email info'},
                             status=status.HTTP_400_BAD_REQUEST)
-
-        validate_email(email)
         try:
             user = User.objects.get(email=email)
             user.code = generate_code()  # reset code
@@ -32,14 +30,19 @@ class VerificationCodeViewSet(viewsets.ModelViewSet):
             user.save(update_fields=['code', 'code_expires_at'])
         except User.DoesNotExist:
             # code will be automatically generated
-            user = User.objects.create_user(email=email)
+            try:
+                user = User.objects.create_user(email=email)
+            # Validate only whitelisted domain
+            except ValidationError as e:
+                return Response({'status': 406,
+                                 'detail': f'요청하신 이메일 도메인({e.message})은 지원하지 않습니다😥'},
+                                status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        subject = f'[고대복덕방] 인증코드입니다.'
+        subject = f'[안암랜드] 인증코드 {user.code}'
         message = f'인증코드입니다: {user.code}'
         user.email_code(subject, message)
-
         return Response({'status': 200,
-                         'detail': 'send code'}, status=status.HTTP_200_OK)
+                         'detail': '인증코드를 전송했습니다!😀'}, status=status.HTTP_200_OK)
 
 
 class LoginViewSet(viewsets.ModelViewSet):

@@ -11,20 +11,32 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from django.core.validators import EmailValidator
 
 # NEED OVERRIDE
 # This value is used in URL path, Swagger, GCS blob save dir etc.
 API_VERSION = 'v1'
 
+"""[START] LAND APP SETTING """
 # BUSINESS related setting
 # Verification Code setting
 EMAIL_CODE_DIGIT = 4
 EMAIL_CODE_LIFETIME_MIN = 5
+
 # Room Bump setting
 BUMP_CYCLE_SEC = 24 * 60 * 60  # 끌올 주기 (24h)
+
 # Image thumbnail setting
 THUMBNAIL_DIMENSION = (128, 128)  # 128x128
 THUMBNAIL_URL_SUFFIX = '=thumbnail'  # https://<PUBLIC_URL_TO_IMAGE>=thumbnail
+
+# Allowed email domain
+ALLOWED_EMAIL_DOMAIN = (
+    'landcorp.io',
+    'korea.ac.kr',
+)
+
+"""[END] LAND APP SETTING """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
