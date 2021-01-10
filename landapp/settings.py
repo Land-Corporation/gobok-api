@@ -37,6 +37,11 @@ ALLOWED_EMAIL_DOMAIN = (
     'landcorp.io',
     'korea.ac.kr',
 )
+ALLOWED_EMAILS = (
+    'david.jeong0724@gmail.com',
+    'yeechan.ko@gmail.com',
+)
+MASTER_KEY_EMAIL = 'apptest_7f4c2@korea.ac.kr'
 
 # Slack #feedback chanel webhook integration
 SLACK_FEEDBACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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'
@@ -54,6 +59,9 @@ SECRET_KEY = 'l4b#tsk77hyv#xi$+mir516p*tys)(_36ya5)4#h0$0gqivdw6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+# Only no slask is allowed
+APPEND_SLASH = False
 
 # SECURITY WARNING: App Engine's security features ensure that it is safe to
 # have ALLOWED_HOSTS = ['*'] when the app is deployed. If you deploy a Django

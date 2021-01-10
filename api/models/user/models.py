@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.mail import send_mail
-from django.core.validators import MinLengthValidator, EmailValidator
+from django.core.validators import MinLengthValidator
 from django.db import models
 from model_utils.models import TimeStampedModel
 from model_utils.models import TimeStampedModel

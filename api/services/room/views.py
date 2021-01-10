@@ -69,12 +69,13 @@ class RoomViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
-            self.perform_create(serializer)
+            room = self.perform_create(serializer)
         except ValidationError as e:
             return Response({'status': 403,
                              'detail': e.message}, status=status.HTTP_403_FORBIDDEN)
         return Response({'status': 200,
-                         'detail': f'created room'}, status=status.HTTP_200_OK)
+                         'detail': f'created room',
+                         'data': {'room_id': room.id}}, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         """A hook that is called after serializer.is_valid() and before serializer.save()"""
@@ -115,10 +116,9 @@ class RoomBumpViewSet(viewsets.ModelViewSet):
 
         # check if able to bump
         if time_elapsed < settings.BUMP_CYCLE_SEC:
-            remaining_time = settings.BUMP_CYCLE_SEC - time_elapsed
+            # remaining_time = settings.BUMP_CYCLE_SEC - time_elapsed
             return Response({'status': 403,
-                             'detail': f'bump cycle for room(id={room.id}) not reached. '
-                                       f'please wait {remaining_time}sec'},
+                             'detail': f'끌올은 하루에 한번만 하실 수 있어요!⏱'},
                             status=status.HTTP_403_FORBIDDEN)
         room.bumped_at = now_time
         room.save(update_fields=['bumped_at'])

@@ -6,6 +6,6 @@ from .views import (
 )
 
 urlpatterns = [
-    path('rooms', MyRoomViewSet.as_view({'get': 'list'})),
-    path('feedback', MyFeedbackViewSet.as_view({'post': 'create'})),
+    path('/rooms', MyRoomViewSet.as_view({'get': 'list'})),
+    path('/feedback', MyFeedbackViewSet.as_view({'post': 'create'})),
 ]

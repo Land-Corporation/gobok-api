@@ -14,7 +14,7 @@ V = settings.API_VERSION
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('_ah/warmup', include(warmup_urls)),  # appengine warmup handler
-    path(f'{V}/auth/', include(auth_urls)),
-    path(f'{V}/rooms/', include(room_urls)),
-    path(f'{V}/my/', include(my_urls)),
+    path(f'{V}/auth', include(auth_urls)),
+    path(f'{V}/rooms', include(room_urls)),
+    path(f'{V}/my', include(my_urls)),
 ]

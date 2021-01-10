@@ -15,11 +15,14 @@ class UserManager(BaseUserManager):
 
         # check email domain
         if domain not in settings.ALLOWED_EMAIL_DOMAIN:
-            raise ValidationError(message=domain)
+            # check whitelist emails
+            if email in settings.ALLOWED_EMAILS:
+                pass
+            else:
+                raise ValidationError(message=domain)
 
         user = self.model(email=self.normalize_email(email), nickname=nickname)
         user.set_password(password)
-        user.full_clean()
         user.save(using=self._db)
         return user
 
