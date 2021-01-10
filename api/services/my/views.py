@@ -1,11 +1,13 @@
+import requests
+from django.conf import settings
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
-from django.conf import settings
+
 from api.models.room.models import Room
 from api.services.room.serializers import RoomDetailViewSerializer
 from .serializers import FeedbackSerializer
-import requests
+
 
 class MyRoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all().filter(is_public=True)
