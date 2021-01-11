@@ -83,27 +83,37 @@ class RoomViewSet(viewsets.ModelViewSet):
         return instance
 
     def update(self, request, *args, **kwargs):
-        image_param = request.data.pop('images', None)
-        if not image_param:
-            return Response({'status': 400,
-                             'detail': 'send `images` fields on your body'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        image_to_delete = image_param.get('to_delete', None)
-        image_order = image_param.get('order', None)
-
         room = self.get_object()  # performs check_object_permission
+        images = request.data.pop('images', [])
+        orig_image_ids = set(RoomImage.objects.filter(room=room, is_public=True).
+                             values_list('id', flat=True))
+        # process
+        image_ids = set()
+        ordered_image_ids = []
+        for image in images:
+            url = image['url']
+            image = RoomImage.objects.get_or_create(url=url, room=room)[0]
+            image_ids.add(image.id)
+            ordered_image_ids.append(image.id)
 
-        # Delete
-        if image_to_delete:
-            for d_id in image_to_delete:
-                image = RoomImage.objects.get(id=d_id)  # performs check_object_permission
-                image.is_public = False
-                image.save(update_fields=['is_public'])
+        # delete
+        to_delete_images = orig_image_ids.difference(image_ids)
+        for d_id in to_delete_images:
+            image = RoomImage.objects.get(id=d_id)  # performs check_object_permission
+            image.is_public = False
+            image.save(update_fields=['is_public'])
 
-        # Reorder
-        if image_order:
-            room.set_roomimage_order(image_order)
+        # add
+        to_add_images = image_ids.difference(orig_image_ids)
+        for a_id in to_add_images:
+            image = RoomImage.objects.get(id=a_id)  # performs check_object_permission
+            image.is_public = True
+            image.save(update_fields=['is_public'])
 
+        # reorder
+        room.set_roomimage_order(ordered_image_ids)
+
+        # serialize
         serializer = self.get_serializer(room, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
@@ -198,22 +208,6 @@ class RoomImageViewSet(viewsets.ModelViewSet):
 
         return Response({'status': 200,
                          'data': serializer.data}, status=status.HTTP_200_OK)
-
-    def reorder(self, request, *args, **kwargs):
-        image_id_order = request.data.get('image_id_order', None)
-        if not image_id_order:
-            return Response({'status': 400,
-                             'detail': 'send list of image_ids by order desired'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        room = Room.objects.get(id=self.kwargs['room_id'])
-
-        # check permission
-        self.check_object_permissions(request, room)
-
-        # reorder
-        room.set_roomimage_order(image_id_order)
-        return Response({'status': 200,
-                         'detail': 'reordered room images'}, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         image = self.get_object()  # performs check_object_permission
