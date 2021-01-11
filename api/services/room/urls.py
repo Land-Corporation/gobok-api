@@ -11,11 +11,9 @@ urlpatterns = [
     path('', RoomViewSet.as_view({'get': 'list',
                                   'post': 'create'})),
     path('/images', RoomImageViewSet.as_view({'post': 'create'})),
-    path('/images/<image_id>', RoomImageViewSet.as_view({'delete': 'destroy'})),
     path('/<room_id>', RoomViewSet.as_view({'get': 'retrieve',
-                                           'put': 'update',
-                                           'delete': 'destroy'})),
+                                            'put': 'update',
+                                            'delete': 'destroy'})),
     path('/<room_id>/bump', RoomBumpViewSet.as_view({'post': 'bump'})),
-    path('/<room_id>/images', RoomImageViewSet.as_view({'post': 'create',
-                                                       'put': 'reorder'}))
+    path('/<room_id>/images', RoomImageViewSet.as_view({'post': 'create'}))
 ]

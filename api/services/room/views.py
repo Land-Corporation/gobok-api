@@ -72,7 +72,7 @@ class RoomViewSet(viewsets.ModelViewSet):
             room = self.perform_create(serializer)
         except ValidationError as e:
             return Response({'status': 403,
-                             'detail': e.message}, status=status.HTTP_403_FORBIDDEN)
+                             'detail': '허위매물 방지를 위해 방은 하나밖에 올리지 못해요!🏠'}, status=status.HTTP_403_FORBIDDEN)
         return Response({'status': 200,
                          'detail': f'created room',
                          'data': {'room_id': room.id}}, status=status.HTTP_200_OK)
@@ -83,7 +83,27 @@ class RoomViewSet(viewsets.ModelViewSet):
         return instance
 
     def update(self, request, *args, **kwargs):
+        image_param = request.data.pop('images', None)
+        if not image_param:
+            return Response({'status': 400,
+                             'detail': 'send `images` fields on your body'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        image_to_delete = image_param.get('to_delete', None)
+        image_order = image_param.get('order', None)
+
         room = self.get_object()  # performs check_object_permission
+
+        # Delete
+        if image_to_delete:
+            for d_id in image_to_delete:
+                image = RoomImage.objects.get(id=d_id)  # performs check_object_permission
+                image.is_public = False
+                image.save(update_fields=['is_public'])
+
+        # Reorder
+        if image_order:
+            room.set_roomimage_order(image_order)
+
         serializer = self.get_serializer(room, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
