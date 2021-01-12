@@ -41,7 +41,7 @@ class VerificationCodeViewSet(viewsets.ModelViewSet):
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
         # send verification email
         code = user.code
-        subject = f'[안암랜드] 인증코드 {code}'
+        subject = f'[고대복덕방] 인증코드 {code}'
         msg_html = render_to_string('email_verification.html', {'code': code})
         user.email_code(subject, '', settings.DEFAULT_FROM_EMAIL, html_message=msg_html)
         return Response({'status': 200, 'detail': '인증코드를 전송했습니다!😀'},
