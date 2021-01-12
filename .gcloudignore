@@ -12,6 +12,7 @@
 # below:
 .git
 .gitignore
+db.sqlite3
 
 # Python pycache:
 __pycache__/

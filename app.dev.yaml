@@ -1,13 +1,22 @@
 # [START django_app]
 runtime: python39
 
+instance_class: F1
+service: dev
+
 # Warmup requests enabled, App Engine issues GET requests to /_ah/warmup.
 # You can implement handlers for this request to perform application-specific tasks
 inbound_services:
   - warmup
 
-automatic_scaling:
-  min_instances: 1
+env_variables:
+  DJANGO_DEBUG: True
+  LANDAPP_SQL_HOST: /cloudsql/landproject-300105:asia-northeast3:landapp-mysql
+  LANDAPP_SQL_USER: root
+  LANDAPP_SQL_PASSWORD: LhiMIsD70ssE8JFi
+  LANDAPP_SQL_NAME: landapp_dev
+  GCS_BUCKET_NAME: landproject-300105.appspot.com
+  GCS_IMAGE_FOLDER_NAME: dev/images
 
 handlers:
 # This configures Google App Engine to serve the files in the app's static

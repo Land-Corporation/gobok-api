@@ -58,7 +58,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'l4b#tsk77hyv#xi$+mir516p*tys)(_36ya5)4#h0$0gqivdw6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', False)
 
 # Only no slask is allowed
 APPEND_SLASH = False
@@ -136,15 +136,20 @@ if os.getenv('GAE_APPLICATION', None):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': '/cloudsql/landproject-300105:asia-northeast3:landapp-mysql',
-            'USER': 'root',
-            'PASSWORD': 'LhiMIsD70ssE8JFi',
-            'NAME': 'landapp',
+            'HOST': os.environ['LANDAPP_SQL_HOST'],
+            'USER': os.environ['LANDAPP_SQL_USER'],
+            'PASSWORD': os.environ['LANDAPP_SQL_PASSWORD'],
+            'NAME': os.environ['LANDAPP_SQL_NAME'],
             'OPTIONS': {
                 'charset': 'utf8mb4',
                 'use_unicode': True, },
         }
     }
+    # Infra setting
+    # Google Cloud Storage setting
+    GCS_BUCKET_NAME = os.environ['GCS_BUCKET_NAME']
+    GCS_IMAGE_FOLDER_NAME = os.environ['GCS_IMAGE_FOLDER_NAME']
+
 else:
     # Running locally so connect to either a local MySQL instance or connect to
     # Cloud SQL via the proxy. To start the proxy via command line:
@@ -157,7 +162,7 @@ else:
             'ENGINE': 'django.db.backends.mysql',
             'HOST': '127.0.0.1',
             'PORT': '3306',
-            'NAME': 'landapp',
+            'NAME': 'landapp_dev',
             'USER': 'jin',
             'PASSWORD': 'Wjdwls93@',
             'OPTIONS': {
@@ -165,6 +170,10 @@ else:
                 'use_unicode': True, },
         }
     }
+    # Infra setting
+    # Google Cloud Storage setting
+    GCS_BUCKET_NAME = 'landproject-300105.appspot.com'
+    GCS_IMAGE_FOLDER_NAME = 'dev/images'
 # [END db_setup]
 
 # Password validation
@@ -212,28 +221,6 @@ JWT_AUTH = {
     'JWT_VERIFY_EXPIRATION': False,
 }
 
-# Swagger settings
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'basic': {
-            'type': 'basic',
-        },
-    },
-    'LOGIN_URL': '/admin/login/',
-    'LOGOUT_URL': '/admin/logout/',
-    'USE_SESSION_AUTH': True,
-    'DOC_EXPANSION': 'None',
-    'DEEP_LINKING': True,
-    'DEFAULT_MODEL_DEPTH': 1,
-    'DISPLAY_OPERATION_ID': False,
-    'REFETCH_SCHEMA_WITH_AUTH': True,
-    'REFETCH_SCHEMA_ON_LOGOUT': True,
-}
-REDOC_SETTINGS = {
-    'PATH_IN_MIDDLE': True,
-    'REQUIRED_PROPS_FIRST': True,
-}
-
 # Email setting
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
@@ -242,11 +229,6 @@ EMAIL_HOST_USER = 'jin@landcorp.io'
 EMAIL_HOST_PASSWORD = 'jpyqgmmmhyfpvxvr'
 DEFAULT_FROM_EMAIL = 'support@landcorp.io'
 EMAIL_PORT = 587
-
-# Infra setting
-# Google Cloud Storage setting
-GCS_BUCKET_NAME = 'landproject-300105.appspot.com'
-GCS_IMAGE_FOLDER_NAME = 'images'  # folder name that image will be uploaded to
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
