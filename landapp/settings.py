@@ -58,7 +58,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'l4b#tsk77hyv#xi$+mir516p*tys)(_36ya5)4#h0$0gqivdw6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', False)
+DEBUG = os.environ.get('DJANGO_DEBUG', True)
 
 # Only no slask is allowed
 APPEND_SLASH = False

@@ -85,10 +85,11 @@ class RoomViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         room = self.get_object()  # performs check_object_permission
         images = request.data.pop('images', None)
+        print(images)
         orig_image_ids = set(RoomImage.objects.filter(room=room, is_public=True).
                              values_list('id', flat=True))
 
-        if images:  # only handle image when image field is given from request body
+        if images is not None:  # only handle image when image field is given from request body
             # process
             image_ids = set()
             ordered_image_ids = []
