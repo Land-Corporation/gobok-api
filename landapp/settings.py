@@ -84,7 +84,8 @@ INSTALLED_APPS = [
     'api.models.user',
     'api.models.room',
     'api.models.room_image',
-    'api.models.feedback'
+    'api.models.feedback',
+    'api.models.version'
 ]
 
 MIDDLEWARE = [
