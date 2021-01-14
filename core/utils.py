@@ -17,5 +17,5 @@ def convert_image_to_thumbnail(original_image: bytes) -> bytes:
     image = Image.open(io.BytesIO(original_image))
     image = ImageOps.fit(image, settings.THUMBNAIL_DIMENSION, Image.ANTIALIAS)
     buf = io.BytesIO()
-    image.save(buf, format='JPEG', quality=100)
+    image.save(buf, format='PNG', quality=100)
     return buf.getvalue()
